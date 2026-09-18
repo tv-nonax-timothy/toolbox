@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON / YAML / INI 相互変換ツール - のなっくすの道具箱</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1p:wght@400;500;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- js-yaml for YAML parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"M PLUS Rounded 1p"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'M PLUS Rounded 1p', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        textarea { font-family: 'JetBrains Mono', monospace; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <a href="index.html" class="w-10 h-10 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+                <div class="flex items-center space-x-2">
+                    <div class="w-9 h-9 bg-brand-600 rounded-xl flex items-center justify-center text-white text-lg shadow-sm">
+                        <i class="fa-solid fa-rotate"></i>
+                    </div>
+                    <h1 class="text-lg sm:text-xl font-extrabold text-slate-900">JSON / YAML / INI 相互変換</h1>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <span id="status-msg" class="text-xs text-slate-400 font-medium hidden sm:inline"><i class="fa-solid fa-check text-brand-500 mr-1"></i>準備完了</span>
+                <button onclick="loadSample()" class="bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold px-3.5 py-2 rounded-xl text-xs sm:text-sm transition-all flex items-center space-x-1.5 border border-brand-200">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>サンプル読込</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-6 relative lg:h-[calc(100vh-6rem)]">
+        
+        <!-- Left Pane: Input -->
+        <div class="w-full lg:w-1/2 flex flex-col bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden lg:h-full">
+            <div class="bg-slate-50 px-5 py-3 border-b border-slate-200 flex items-center justify-between shrink-0">
+                <div class="flex items-center space-x-3">
+                    <span class="text-xs font-bold text-slate-600 flex items-center space-x-1.5">
+                        <i class="fa-solid fa-code text-brand-600"></i>
+                        <span>入力データ</span>
+                    </span>
+                    <select id="input-format" onchange="convertData()" class="text-xs font-bold bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-slate-700 focus:outline-none focus:border-brand-500">
+                        <option value="json">JSON</option>
+                        <option value="yaml">YAML</option>
+                        <option value="ini">INI</option>
+                    </select>
+                </div>
+                <button onclick="clearInput()" class="text-xs font-bold text-slate-400 hover:text-rose-600 transition-colors">
+                    <i class="fa-solid fa-trash-can mr-1"></i>クリア
+                </button>
+            </div>
+            <textarea id="input-text" oninput="convertData()" placeholder="ここに変換元のデータを貼り付けてください..." class="flex-grow w-full p-5 text-sm sm:text-base resize-none focus:outline-none min-h-[300px] lg:min-h-0 leading-relaxed overflow-y-auto"></textarea>
+        </div>
+
+        <!-- Right Pane: Output -->
+        <div class="w-full lg:w-1/2 flex flex-col bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden lg:h-full">
+            <div class="bg-slate-50 px-5 py-3 border-b border-slate-200 flex items-center justify-between shrink-0">
+                <div class="flex items-center space-x-3">
+                    <span class="text-xs font-bold text-slate-600 flex items-center space-x-1.5">
+                        <i class="fa-solid fa-file-export text-sky-500"></i>
+                        <span>変換結果</span>
+                    </span>
+                    <select id="output-format" onchange="convertData()" class="text-xs font-bold bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-slate-700 focus:outline-none focus:border-brand-500">
+                        <option value="yaml">YAML</option>
+                        <option value="json">JSON</option>
+                        <option value="ini">INI</option>
+                    </select>
+                </div>
+                <button onclick="copyOutput()" class="text-xs font-bold text-slate-600 hover:text-brand-600 transition-colors flex items-center space-x-1">
+                    <i class="fa-regular fa-copy"></i>
+                    <span>結果をコピー</span>
+                </button>
+            </div>
+            <textarea id="output-text" readonly placeholder="変換結果がここに表示されます..." class="flex-grow w-full p-5 text-sm sm:text-base resize-none focus:outline-none min-h-[300px] lg:min-h-0 leading-relaxed bg-slate-50/50 overflow-y-auto font-mono"></textarea>
+        </div>
+
+    </main>
+
+    <script>
+        const inputText = document.getElementById('input-text');
+        const outputText = document.getElementById('output-text');
+        const inputFormat = document.getElementById('input-format');
+        const outputFormat = document.getElementById('output-format');
+        const statusMsg = document.getElementById('status-msg');
+
+        // Simple INI parser & stringify
+        function parseINI(text) {
+            const result = {};
+            let currentSection = '_global';
+            result[currentSection] = {};
+
+            const lines = text.split(/\r?\n/);
+            for (let line of lines) {
+                line = line.trim();
+                if (!line || line.startsWith(';') || line.startsWith('#')) continue;
+
+                if (line.startsWith('[') && line.endsWith(']')) {
+                    currentSection = line.substring(1, line.length - 1).trim();
+                    if (!result[currentSection]) result[currentSection] = {};
+                } else {
+                    const eqIdx = line.indexOf('=');
+                    if (eqIdx !== -1) {
+                        const key = line.substring(0, eqIdx).trim();
+                        let val = line.substring(eqIdx + 1).trim();
+                        // Strip quotes if present
+                        if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+                            val = val.substring(1, val.length - 1);
+                        }
+                        // Type casting
+                        if (val.toLowerCase() === 'true') val = true;
+                        else if (val.toLowerCase() === 'false') val = false;
+                        else if (!isNaN(val) && val !== '') val = Number(val);
+
+                        result[currentSection][key] = val;
+                    }
+                }
+            }
+            // Flatten if only global or clean up empty global
+            if (Object.keys(result._global).length === 0) {
+                delete result._global;
+            }
+            return result;
+        }
+
+        function stringifyINI(obj) {
+            if (!obj || typeof obj !== 'object') return '';
+            let lines = [];
+
+            for (const [key, val] of Object.entries(obj)) {
+                if (val !== null && typeof val === 'object' && !Array.isArray(val)) {
+                    // Section
+                    lines.push(`[${key}]`);
+                    for (const [subKey, subVal] of Object.entries(val)) {
+                        lines.push(`${subKey} = ${subVal}`);
+                    }
+                    lines.push('');
+                } else {
+                    // Global
+                    lines.push(`${key} = ${val}`);
+                }
+            }
+            return lines.join('\n').trim();
+        }
+
+        // Main conversion logic
+        function convertData() {
+            const raw = inputText.value.trim();
+            if (!raw) {
+                outputText.value = '';
+                statusMsg.innerHTML = '<i class="fa-solid fa-check text-brand-500 mr-1"></i>準備完了';
+                return;
+            }
+
+            const inFmt = inputFormat.value;
+            const outFmt = outputFormat.value;
+
+            try {
+                let jsObj;
+
+                // 1. Parse input to JS Object
+                if (inFmt === 'json') {
+                    jsObj = JSON.parse(raw);
+                } else if (inFmt === 'yaml') {
+                    jsObj = jsyaml.load(raw);
+                } else if (inFmt === 'ini') {
+                    jsObj = parseINI(raw);
+                }
+
+                // 2. Stringify JS Object to output format
+                let res = '';
+                if (outFmt === 'json') {
+                    res = JSON.stringify(jsObj, null, 2);
+                } else if (outFmt === 'yaml') {
+                    res = jsyaml.dump(jsObj, { indent: 2 });
+                } else if (outFmt === 'ini') {
+                    res = stringifyINI(jsObj);
+                }
+
+                outputText.value = res;
+                statusMsg.innerHTML = '<i class="fa-solid fa-check text-brand-500 mr-1"></i>変換成功';
+            } catch (err) {
+                outputText.value = `[変換エラー] パースに失敗しました:\n${err.message}`;
+                statusMsg.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1"></i>エラー';
+            }
+        }
+
+        function loadSample() {
+            inputFormat.value = 'json';
+            outputFormat.value = 'yaml';
+            inputText.value = JSON.stringify({
+                ServerSettings: {
+                    ServerName: "Nonax Gaming Server",
+                    MaxPlayers: 32,
+                    DayTimeSpeedRate: 1.0,
+                    PVP: false
+                },
+                AdminPassword: "secretpassword"
+            }, null, 2);
+            convertData();
+        }
+
+        function clearInput() {
+            inputText.value = '';
+            convertData();
+        }
+
+        function copyOutput() {
+            const text = outputText.value;
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textArea);
+            
+            statusMsg.innerHTML = '<i class="fa-solid fa-copy text-brand-500 mr-1"></i>コピーしました！';
+            setTimeout(() => {
+                statusMsg.innerHTML = '<i class="fa-solid fa-check text-brand-500 mr-1"></i>変換成功';
+            }, 2000);
+        }
+
+        // Load default sample on start
+        window.addEventListener('DOMContentLoaded', () => {
+            loadSample();
+        });
+    </script>
+</body>
+</html>

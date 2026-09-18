@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdownメモ ＆ チートシート - のなっくすの道具箱</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1p:wght@400;500;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Highlight.js for code block syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+    <!-- Mermaid.js for Diagram Rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"M PLUS Rounded 1p"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'M PLUS Rounded 1p', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        textarea { font-family: 'JetBrains Mono', monospace; }
+        /* Markdown Preview Styling */
+        .markdown-body h1 { font-size: 1.8rem; font-weight: bold; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.3rem; margin-top: 1rem; margin-bottom: 1rem; }
+        .markdown-body h2 { font-size: 1.4rem; font-weight: bold; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.2rem; margin-top: 1.2rem; margin-bottom: 0.8rem; }
+        .markdown-body h3 { font-size: 1.15rem; font-weight: bold; margin-top: 1rem; margin-bottom: 0.5rem; }
+        .markdown-body p { margin-bottom: 0.8rem; line-height: 1.7; }
+        .markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.8rem; }
+        .markdown-body ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.8rem; }
+        .markdown-body blockquote { border-left: 4px solid #22c55e; padding-left: 1rem; color: #64748b; margin-bottom: 0.8rem; background: #f0fdf4; padding-top: 0.5rem; padding-bottom: 0.5rem; border-radius: 0 0.5rem 0.5rem 0; }
+        .markdown-body code { background: #f1f5f9; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-size: 0.9em; font-family: 'JetBrains Mono', monospace; color: #0f172a; }
+        .markdown-body pre { background: #0f172a; color: #f8fafc; padding: 1rem; border-radius: 0.75rem; overflow-x: auto; margin-bottom: 1rem; }
+        .markdown-body pre code { background: transparent; color: inherit; padding: 0; }
+        .markdown-body table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+        .markdown-body th, .markdown-body td { border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem; text-align: left; }
+        .markdown-body th { background-color: #f1f5f9; font-weight: bold; }
+        .markdown-body a { color: #16a34a; text-decoration: underline; }
+        /* Mermaid Diagram Container */
+        .mermaid { background: #ffffff; text-align: center; margin: 1rem 0; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 0.75rem; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <a href="index.html" class="w-10 h-10 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+                <div class="flex items-center space-x-2">
+                    <div class="w-9 h-9 bg-brand-600 rounded-xl flex items-center justify-center text-white text-lg shadow-sm">
+                        <i class="fa-solid fa-note-sticky"></i>
+                    </div>
+                    <h1 class="text-lg sm:text-xl font-extrabold text-slate-900">Markdownメモ ＆ チートシート</h1>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <span id="save-status" class="text-xs text-slate-400 font-medium hidden sm:inline"><i class="fa-solid fa-check text-brand-500 mr-1"></i>自動保存済み</span>
+                <button onclick="toggleCheatSheet()" class="bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold px-3.5 py-2 rounded-xl text-xs sm:text-sm transition-all flex items-center space-x-1.5 border border-brand-200">
+                    <i class="fa-solid fa-book-open"></i>
+                    <span>チートシート</span>
+                </button>
+                <button onclick="clearEditor()" class="bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 font-bold px-3 py-2 rounded-xl text-xs sm:text-sm transition-all" title="クリア">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-6 relative lg:h-[calc(100vh-6rem)]">
+        
+        <!-- Left Pane: Editor -->
+        <div class="w-full lg:w-1/2 flex flex-col bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden lg:h-full">
+            <div class="bg-slate-50 px-5 py-3 border-b border-slate-200 flex items-center justify-between shrink-0">
+                <span class="text-xs font-bold text-slate-600 flex items-center space-x-2">
+                    <i class="fa-solid fa-code text-brand-600"></i>
+                    <span>Markdown エディタ (Mermaid対応)</span>
+                </span>
+                <button onclick="copyMarkdown()" class="text-xs font-bold text-slate-500 hover:text-brand-600 transition-colors flex items-center space-x-1">
+                    <i class="fa-regular fa-copy"></i>
+                    <span>全コピー</span>
+                </button>
+            </div>
+            <textarea id="markdown-input" oninput="updatePreview()" placeholder="# ここにMarkdownを入力してください...
+(例: 見出し、リスト、テーブル、Mermaid図など)" class="flex-grow w-full p-5 text-sm sm:text-base resize-none focus:outline-none min-h-[400px] lg:min-h-0 leading-relaxed overflow-y-auto"></textarea>
+        </div>
+
+        <!-- Right Pane: Live Preview -->
+        <div class="w-full lg:w-1/2 flex flex-col bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden lg:h-full">
+            <div class="bg-slate-50 px-5 py-3 border-b border-slate-200 flex items-center justify-between shrink-0">
+                <span class="text-xs font-bold text-slate-600 flex items-center space-x-2">
+                    <i class="fa-solid fa-eye text-sky-500"></i>
+                    <span>リアルタイムプレビュー</span>
+                </span>
+                <span class="text-xs text-slate-400 font-medium">Auto Rendered</span>
+            </div>
+            <div id="preview-output" class="markdown-body flex-grow p-6 sm:p-8 overflow-y-auto min-h-[400px] lg:min-h-0"></div>
+        </div>
+
+        <!-- Collapsible Cheat Sheet Drawer / Modal -->
+        <div id="cheat-sheet-modal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
+                <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+                    <h3 class="font-extrabold text-base sm:text-lg flex items-center space-x-2">
+                        <i class="fa-solid fa-book-bookmark text-brand-400"></i>
+                        <span>Markdown チートシート（クリックで挿入）</span>
+                    </h3>
+                    <button onclick="toggleCheatSheet()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                
+                <div class="p-6 overflow-y-auto space-y-6 text-sm">
+                    <!-- Cheat items -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        
+                        <div onclick="insertSnippet('# 見出し 1\n')" class="bg-slate-50 hover:bg-brand-50 border border-slate-200 hover:border-brand-300 p-3.5 rounded-2xl cursor-pointer transition-all">
+                            <div class="font-bold text-slate-800 mb-1">大見出し (H1)</div>
+                            <code class="text-xs bg-white px-2 py-1 rounded border border-slate-200 text-brand-600 block"># 見出し</code>
+                        </div>
+
+                        <div onclick="insertSnippet('## 見出し 2\n')" class="bg-slate-50 hover:bg-brand-50 border border-slate-200 hover:border-brand-300 p-3.5 rounded-2xl cursor-pointer transition-all">
+                            <div class="font-bold text-slate-800 mb-1">中見出し (H2)</div>
+                            <code class="text-xs bg-white px-2 py-1 rounded border border-slate-200 text-brand-600 block">## 見出し</code>
+                        </div>
+
+                        <div onclick="insertSnippet('**太字テキスト**')" class="bg-slate-50 hover:bg-brand-50 border border-slate-200 hover:border-brand-300 p-3.5 rounded-2xl cursor-pointer transition-all">
+                            <div class="font-bold text-slate-800 mb-1">太字</div>
+                            <code class="text-xs bg-white px-2 py-1 rounded border border-slate-200 text-brand-600 block">**太字**</code>
+                        </div>
+
+                        <div onclick="insertSnippet('* 箇条書き項目1\n* 箇条書き項目2\n')" class="bg-slate-50 hover:bg-brand-50 border border-slate-200 hover:border-brand-300 p-3.5 rounded-2xl cursor-pointer transition-all">
+                            <div class="font-bold text-slate-800 mb-1">箇条書きリスト</div>
+                            <code class="text-xs bg-white px-2 py-1 rounded border border-slate-200 text-brand-600 block">* 項目</code>
+                        </div>
+
+                        <div onclick="insertSnippet('[リンクテキスト](https://example.com)')" class="bg-slate-50 hover:bg-brand-50 border border-slate-200 hover:border-brand-300 p-3.5 rounded-2xl cursor-pointer transition-all">
+                            <div class="font-bold text-slate-800 mb-1">リンク</div>
+                            <code class="text-xs bg-white px-2 py-1 rounded border border-slate-200 text-brand-600 block">[テキスト](URL)</code>
+                        </div>
+
+                        <div onclick="insertSnippet('> 引用文をここに書く\n')" class="bg-slate-50 hover:bg-brand-50 border border-slate-200 hover:border-brand-300 p-3.5 rounded-2xl cursor-pointer transition-all">
+                            <div class="font-bold text-slate-800 mb-1">引用</div>
+                            <code class="text-xs bg-white px-2 py-1 rounded border border-slate-200 text-brand-600 block">> 引用文</code>
+                        </div>
+
+                        <div onclick="insertSnippet('```javascript\n// コードブロック\nconsole.log(&quot;Hello&quot;);\n```\n')" class="bg-slate-50 hover:bg-brand-50 border border-slate-200 hover:border-brand-300 p-3.5 rounded-2xl cursor-pointer transition-all sm:col-span-2">
+                            <div class="font-bold text-slate-800 mb-1">コードブロック（シンタックスハイライト付き）</div>
+                            <code class="text-xs bg-white px-2 py-1 rounded border border-slate-200 text-brand-600 block">```lang ... ```</code>
+                        </div>
+
+                        <!-- Mermaid Cheat item -->
+                        <div onclick="insertSnippet('```mermaid\ngraph TD\n    A[開始] --> B{分岐}\n    B -->|Yes| C[処理1]\n    B -->|No| D[処理2]\n```\n')" class="bg-emerald-50 hover:bg-emerald-100 border border-brand-300 p-3.5 rounded-2xl cursor-pointer transition-all sm:col-span-2">
+                            <div class="font-bold text-brand-800 mb-1 flex items-center space-x-1.5">
+                                <i class="fa-solid fa-chart-pie text-brand-600"></i>
+                                <span>Mermaid 図解（フローチャート）</span>
+                            </div>
+                            <code class="text-xs bg-white px-2 py-1 rounded border border-emerald-200 text-brand-700 block">```mermaid graph TD A --> B ```</code>
+                        </div>
+
+                        <!-- ER Diagram Cheat item -->
+                        <div onclick="insertSnippet('```mermaid\nerDiagram\n    CUSTOMER ||--o{ ORDER : places\n    ORDER ||--|{ LINE-ITEM : contains\n```\n')" class="bg-emerald-50 hover:bg-emerald-100 border border-brand-300 p-3.5 rounded-2xl cursor-pointer transition-all sm:col-span-2">
+                            <div class="font-bold text-brand-800 mb-1 flex items-center space-x-1.5">
+                                <i class="fa-solid fa-diagram-project text-brand-600"></i>
+                                <span>Mermaid ER図（データベース設計）</span>
+                            </div>
+                            <code class="text-xs bg-white px-2 py-1 rounded border border-emerald-200 text-brand-700 block">```mermaid erDiagram CUSTOMER ||--o{ ORDER : places ```</code>
+                        </div>
+
+                        <!-- Sequence Diagram Cheat item -->
+                        <div onclick="insertSnippet('```mermaid\nsequenceDiagram\n    autonumber\n    actor User\n    participant Browser\n    participant Server\n    User->>Browser: ページを開く\n    Browser->>Server: HTTPリクエスト\n    Server-->>Browser: レスポンス返却\n    Browser-->>User: 画面表示完了\n```\n')" class="bg-emerald-50 hover:bg-emerald-100 border border-brand-300 p-3.5 rounded-2xl cursor-pointer transition-all sm:col-span-2">
+                            <div class="font-bold text-brand-800 mb-1 flex items-center space-x-1.5">
+                                <i class="fa-solid fa-right-left text-brand-600"></i>
+                                <span>Mermaid シーケンス図（処理フロー・API連携）</span>
+                            </div>
+                            <code class="text-xs bg-white px-2 py-1 rounded border border-emerald-200 text-brand-700 block">```mermaid sequenceDiagram User->>Server: Request ```</code>
+                        </div>
+
+                        <div onclick="insertSnippet('| 項目A | 項目B |\n| --- | --- |\n| データ1 | データ2 |\n')" class="bg-slate-50 hover:bg-brand-50 border border-slate-200 hover:border-brand-300 p-3.5 rounded-2xl cursor-pointer transition-all sm:col-span-2">
+                            <div class="font-bold text-slate-800 mb-1">テーブル（表）</div>
+                            <code class="text-xs bg-white px-2 py-1 rounded border border-slate-200 text-brand-600 block">| A | B |\n|---|---|</code>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="px-6 py-3 bg-slate-50 border-t border-slate-200 text-right">
+                    <button onclick="toggleCheatSheet()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-5 py-2 rounded-xl text-xs">
+                        閉じる
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({ startOnLoad: false, theme: 'default' });
+
+        const textarea = document.getElementById('markdown-input');
+        const preview = document.getElementById('preview-output');
+        const saveStatus = document.getElementById('save-status');
+
+        // Built-in markdown parser with Mermaid support
+        function parseMarkdown(md) {
+            if (!md) return '';
+            let html = md
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+
+            // Mermaid diagrams
+            html = html.replace(/```mermaid([\s\S]*?)```/g, '<div class="mermaid">$1</div>');
+            // Standard Code blocks with an optional language name
+            html = html.replace(/```([\w+#.-]*)\n([\s\S]*?)```/g, (match, language, code) => {
+                const languageClass = language ? ` class="language-${language}"` : '';
+                return `<pre><code${languageClass}>${code}</code></pre>`;
+            });
+            // Inline code
+            html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+            // Headers
+            html = html.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+            html = html.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+            html = html.replace(/^# (.*$)/gm, '<h1>$1</h1>');
+            // Bold
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            // Italic
+            html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            // Blockquote
+            html = html.replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>');
+            // Links
+            html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+            // Unordered Lists
+            html = html.replace(/^\* (.*$)/gm, '<ul><li>$1</li></ul>');
+            html = html.replace(/<\/ul>\s*<ul>/g, '');
+            // Paragraphs
+            html = html.split('\n\n').map(para => {
+                para = para.trim();
+                if (!para) return '';
+                if (para.startsWith('<h1') || para.startsWith('<h2') || para.startsWith('<h3') || para.startsWith('<pre') || para.startsWith('<div class="mermaid"') || para.startsWith('<blockquote') || para.startsWith('<ul>')) {
+                    return para;
+                }
+                return `<p>${para.replace(/\n/g, '<br>')}</p>`;
+            }).join('\n');
+
+            return html;
+        }
+
+        // Load initial content from LocalStorage or default sample
+        const STORAGE_KEY = 'nonax_markdown_memo_content';
+        const defaultContent = `# ようこそ、のなっくすのMarkdownメモへ！ 👋
+
+このツールは、MarkdownやMermaid図解の書き方を忘れちゃったときでも、上部の **「チートシート」** からワンクリックで構文を挿入しながらサクサク書ける自分用メモ帳です。
+
+## 📊 Mermaid ER図のサンプル
+データベース設計などでよく使うER図も、これで一発で綺麗にプレビューできます！
+
+\`\`\`mermaid
+erDiagram
+    USER ||--o{ POST : writes
+    USER ||--o{ COMMENT : leaves
+    POST ||--|{ COMMENT : has
+\`\`\`
+
+## 🔄 Mermaid シーケンス図のサンプル
+APIのやり取りや処理の順番を確認したいときによく使うシーケンス図もバッチリ対応！
+
+\`\`\`mermaid
+sequenceDiagram
+    autonumber
+    actor ユーザー
+    participant ブラウザ
+    participant サーバー
+    ユーザー->>ブラウザ: ボタンクリック
+    Browser->>サーバー: APIリクエスト送信
+    サーバー-->>ブラウザ: JSONデータ返却
+    ブラウザ-->>ユーザー: 画面を更新
+\`\`\`
+
+> チートシートのボタンからいつでも挿入できます！
+`;
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            textarea.value = saved !== null ? saved : defaultContent;
+            await updatePreview();
+        });
+
+        async function updatePreview() {
+            const val = textarea.value;
+            preview.innerHTML = parseMarkdown(val);
+
+            // Highlight standard code blocks after the preview HTML is created.
+            preview.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+            
+            // Render Mermaid diagrams
+            try {
+                await mermaid.run({
+                    nodes: preview.querySelectorAll('.mermaid')
+                });
+            } catch (e) {
+                console.error("Mermaid parsing error:", e);
+            }
+            
+            // Save to LocalStorage
+            localStorage.setItem(STORAGE_KEY, val);
+            
+            // Show save indicator
+            saveStatus.innerHTML = '<i class="fa-solid fa-check text-brand-500 mr-1"></i>自動保存済み';
+        }
+
+        function toggleCheatSheet() {
+            const modal = document.getElementById('cheat-sheet-modal');
+            modal.classList.toggle('hidden');
+        }
+
+        function insertSnippet(snippet) {
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+
+            textarea.value = text.substring(0, start) + snippet + text.substring(end);
+            textarea.focus();
+            textarea.selectionStart = textarea.selectionEnd = start + snippet.length;
+            
+            updatePreview();
+            toggleCheatSheet();
+        }
+
+        function clearEditor() {
+            if (confirm('メモの内容をすべてクリアしますか？')) {
+                textarea.value = '';
+                updatePreview();
+            }
+        }
+
+        function copyMarkdown() {
+            const text = textarea.value;
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textArea);
+            
+            saveStatus.innerHTML = '<i class="fa-solid fa-copy text-brand-500 mr-1"></i>コピーしました！';
+            setTimeout(() => {
+                saveStatus.innerHTML = '<i class="fa-solid fa-check text-brand-500 mr-1"></i>自動保存済み';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

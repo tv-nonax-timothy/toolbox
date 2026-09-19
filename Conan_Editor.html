@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conan Exiles 設定GUIエディタ</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 12px;
+            color: #2c3e50;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        .back-link:hover {
+            color: #3498db;
+            text-decoration: underline;
+        }
+        h1 {
+            font-size: 1.5rem;
+            color: #8e44ad;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            font-family: monospace;
+            padding: 8px;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #9b59b6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #8e44ad;
+        }
+        .file-input-container {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #eef2f3;
+            border-radius: 4px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .card {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .card label {
+            display: block;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 3px;
+            word-break: break-all;
+            color: #2c3e50;
+        }
+        .card .range-hint {
+            font-size: 0.75rem;
+            color: #e67e22;
+            margin-bottom: 6px;
+            display: block;
+        }
+        .card input, .card select {
+            width: 100%;
+            padding: 6px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .section {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <a href="index.html" class="back-link">← 道具箱トップへ戻る</a>
+    <h1>Conan Exiles 設定GUIエディタ</h1>
+
+    <div class="section">
+        <h3>1. 設定テキストの読み込み</h3>
+        <div class="file-input-container">
+            <label for="localFile" style="cursor: pointer; font-weight: bold; color: #2c3e50;">📂 ローカルからファイルを選択 (ServerSettings.ini)</label><br>
+            <input type="file" id="localFile" accept=".ini,.txt" onchange="loadLocalFile(event)" style="margin-top: 8px;">
+        </div>
+        <p style="font-size: 0.85rem; color: #666; margin-top: 0;">または、下のテキストボックスに直接貼り付けてください。</p>
+        <textarea id="inputText" placeholder="[;METADATA=(...)]&#10;[ServerSettings]&#10;AdminPassword=..."></textarea>
+        <button onclick="parseSettings()">GUIを展開する</button>
+    </div>
+
+    <div class="section">
+        <h3>2. 項目ごとの編集</h3>
+        <div id="editorGrid" class="grid">
+            <p style="color: #7f8c8d;">ファイルを読み込むか、テキストを貼り付けて「GUIを展開する」を押してください。</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>3. 編集後のテキストを取得</h3>
+        <button onclick="generateSettings()" style="background-color: #2ecc71;">テキストを更新・生成</button>
+        <textarea id="outputText" placeholder="ここに編集結果が反映されます..." readonly></textarea>
+        <button onclick="copyToClipboard()" style="background-color: #e67e22;">クリップボードにコピー</button>
+    </div>
+
+<script>
+// Conan Exiles の主要設定項目の日本語名と設定範囲
+const settingMeta = {
+    AdminPassword: { name: "管理者パスワード", range: "任意の文字列" },
+    ServerPassword: { name: "サーバーパスワード", range: "任意の文字列" },
+    ServerMessageOfTheDay: { name: "本日のメッセージ (MOTD)", range: "任意の文字列" },
+    LogoutCharactersRemainInTheWorld: { name: "ログアウト後もキャラが世界に残る", range: "True / False" },
+    DurabilityMultiplier: { name: "アイテム耐久値倍率", range: "0.1 - 10.0" },
+    StaminaCostMultiplier: { name: "スタミナ消費倍率", range: "0.1 - 10.0" },
+    HarvestAmountMultiplier: { name: "採集量倍率", range: "0.1 - 100.0" },
+    ResourceRespawnSpeedMultiplier: { name: "リソースリスポーン速度倍率", range: "0.1 - 10.0" },
+    MaxNudity: { name: "ヌード表現レベル", range: "0:なし / 1:半裸 / 2:全裸" },
+    PlayerDamageMultiplier: { name: "プレイヤー与ダメージ倍率", range: "0.1 - 10.0" },
+    PlayerDamageTakenMultiplier: { name: "プレイヤー被ダメージ倍率", range: "0.1 - 10.0" },
+    NPCDamageMultiplier: { name: "NPC与ダメージ倍率", range: "0.1 - 10.0" },
+    NPCDamageTakenMultiplier: { name: "NPC被ダメージ倍率", range: "0.1 - 10.0" },
+    PlayerXPRateMultiplier: { name: "経験値獲得倍率", range: "0.1 - 100.0" },
+    ItemWeightMultiplier: { name: "アイテム重量倍率", range: "0.1 - 10.0" },
+    PVPEnabled: { name: "PvP有効", range: "True / False" },
+    CanDamagePlayerOwnedStructures: { name: "プレイヤー建造物ダメージ許可", range: "True / False" },
+    MaxBuildingDecayTime: { name: "建造物減衰タイマー上限(秒)", range: "数値 (例: 1296000)" },
+    DisableBuildingAbandonment: { name: "建造物の減衰（朽ち果て）無効", range: "True / False" },
+    ThrallConversionMultiplier: { name: "奴隷(従者)の育成・変化速度倍率", range: "0.1 - 10.0" },
+    ItemConvertionMultiplier: { name: "アイテム変換・精錬速度倍率", range: "0.1 - 10.0" },
+    FuelBurnTimeMultiplier: { name: "燃料燃焼時間倍率", range: "0.1 - 10.0" },
+    CraftingCostMultiplier: { name: "クラフトコスト倍率", range: "0.1 - 10.0" },
+    EnableFollowerDbno: { name: "従者の気絶(DBNO)システム有効", range: "True / False" },
+    IsBattlEyeEnabled: { name: "BattlEyeアンチチート有効", range: "True / False" },
+    ServerTransferEnabled: { name: "サーバー間転送有効", range: "True / False" },
+    BuildingPickupEnabled: { name: "建造物の回収(ピックアップ)有効", range: "True / False" }
+};
+
+let rawLines = [];
+
+function loadLocalFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        document.getElementById('inputText').value = e.target.result;
+        parseSettings();
+    };
+    reader.readAsText(file, 'UTF-8');
+}
+
+function parseSettings() {
+    const rawText = document.getElementById('inputText').value.trim();
+    if (!rawText) {
+        alert('テキストが空です。設定テキストを入力またはファイルを読み込んでください。');
+        return;
+    }
+
+    rawLines = rawText.split(/\r?\n/);
+    const grid = document.getElementById('editorGrid');
+    grid.innerHTML = '';
+
+    rawLines.forEach((line, index) => {
+        let trimmed = line.trim();
+        // セクションヘッダーやコメント、空行はそのまま保持対象にするがGUIカードは作らない
+        if (!trimmed || trimmed.startsWith('[') || trimmed.startsWith(';') || !trimmed.includes('=')) {
+            return;
+        }
+
+        const eqIdx = trimmed.indexOf('=');
+        const key = trimmed.substring(0, eqIdx).trim();
+        const val = trimmed.substring(eqIdx + 1).trim();
+
+        const card = document.createElement('div');
+        card.className = 'card';
+
+        const meta = settingMeta[key] || { name: key, range: "設定値" };
+
+        const label = document.createElement('label');
+        label.innerHTML = `${key} <span style="color: #8e44ad; font-weight: normal;">(${meta.name})</span>`;
+        card.appendChild(label);
+
+        const hint = document.createElement('span');
+        hint.className = 'range-hint';
+        hint.innerText = `推奨・範囲: ${meta.range}`;
+        card.appendChild(hint);
+
+        let input;
+        if (val === 'True' || val === 'False') {
+            input = document.createElement('select');
+            ['True', 'False'].forEach(opt => {
+                let option = document.createElement('option');
+                option.value = opt;
+                option.text = opt;
+                if (opt.toLowerCase() === val.toLowerCase()) option.selected = true;
+                input.appendChild(option);
+            });
+        } else {
+            input = document.createElement('input');
+            input.type = 'text';
+            input.value = val;
+        }
+
+        input.dataset.lineIndex = index;
+        input.dataset.key = key;
+        input.oninput = (e) => {
+            updateLineValue(e.target.dataset.lineIndex, e.target.dataset.key, e.target.value);
+        };
+        input.onchange = (e) => {
+            updateLineValue(e.target.dataset.lineIndex, e.target.dataset.key, e.target.value);
+        };
+
+        card.appendChild(input);
+        grid.appendChild(card);
+    });
+
+    generateSettings();
+}
+
+function updateLineValue(lineIndex, key, newVal) {
+    rawLines[lineIndex] = `${key}=${newVal}`;
+    generateSettings();
+}
+
+function generateSettings() {
+    if (rawLines.length === 0) return;
+    document.getElementById('outputText').value = rawLines.join('\n');
+}
+
+function copyToClipboard() {
+    const outputText = document.getElementById('outputText');
+    if (!outputText.value) {
+        alert('コピーするテキストがありません。');
+        return;
+    }
+    outputText.select();
+    navigator.clipboard.writeText(outputText.value).then(() => {
+        alert('クリップボードにコピーしました！');
+    }).catch(err => {
+        alert('コピーに失敗しました');
+    });
+}
+</script>
+
+</body>
+</html>

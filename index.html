@@ -110,9 +110,9 @@
                     <i class="fa-solid fa-compass"></i>
                     <span>公開中の道具を見る</span>
                 </a>
-                <a href="pal_editor.html" class="w-full sm:w-auto bg-white hover:bg-slate-50 text-slate-800 border-2 border-slate-200 font-bold px-8 py-4 rounded-2xl shadow-sm transition-all flex items-center justify-center space-x-2">
-                    <i class="fa-solid fa-gamepad text-brand-500"></i>
-                    <span>PAL Editor を開く</span>
+                <a href="markdown_memo.html" class="w-full sm:w-auto bg-white hover:bg-slate-50 text-slate-800 border-2 border-slate-200 font-bold px-8 py-4 rounded-2xl shadow-sm transition-all flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-note-sticky text-brand-500"></i>
+                    <span>Markdownメモを開く</span>
                 </a>
             </div>
         </div>
@@ -128,14 +128,20 @@
                 <p class="text-sm text-slate-500 mt-1 font-medium">のなっくすが作成した公開中のWEBアプリケーション</p>
             </div>
             <div>
-                <span class="bg-brand-50 text-brand-700 border border-brand-200 text-xs font-bold px-3.5 py-1.5 rounded-xl shadow-sm">公開中: 4 ツール</span>
+                <span class="bg-brand-50 text-brand-700 border border-brand-200 text-xs font-bold px-3.5 py-1.5 rounded-xl shadow-sm">公開中: 5 ツール</span>
             </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+            <div class="col-span-full order-10 flex items-center gap-3 pt-2">
+                <i class="fa-solid fa-gamepad text-brand-600"></i>
+                <h4 class="text-lg font-extrabold text-slate-800">ゲーム・サーバー管理</h4>
+                <span class="h-px flex-1 bg-slate-200"></span>
+            </div>
             
             <!-- Tool 1: PAL Editor -->
-            <div class="tool-card bg-white rounded-3xl p-6 sm:p-8 border-2 border-brand-500 shadow-xl shadow-brand-500/10 relative flex flex-col justify-between overflow-hidden">
+            <div class="tool-card order-11 bg-white rounded-3xl p-6 sm:p-8 border-2 border-brand-500 shadow-xl shadow-brand-500/10 relative flex flex-col justify-between overflow-hidden">
                 <div class="absolute top-0 right-0 bg-brand-500 text-white text-xs font-extrabold px-4 py-1.5 rounded-bl-2xl shadow-sm">
                     ✨ 1個目の道具
                 </div>
@@ -161,8 +167,14 @@
                 </div>
             </div>
 
+            <div class="col-span-full order-1 flex items-center gap-3 pt-4">
+                <i class="fa-solid fa-file-lines text-sky-600"></i>
+                <h4 class="text-lg font-extrabold text-slate-800">文書・データ変換</h4>
+                <span class="h-px flex-1 bg-slate-200"></span>
+            </div>
+
             <!-- Tool 2: Markdown Memo -->
-            <div class="tool-card bg-white rounded-3xl p-6 sm:p-8 border-2 border-brand-500 shadow-xl shadow-brand-500/10 relative flex flex-col justify-between overflow-hidden">
+            <div class="tool-card order-2 bg-white rounded-3xl p-6 sm:p-8 border-2 border-brand-500 shadow-xl shadow-brand-500/10 relative flex flex-col justify-between overflow-hidden">
                 <div class="absolute top-0 right-0 bg-emerald-600 text-white text-xs font-extrabold px-4 py-1.5 rounded-bl-2xl shadow-sm">
                     🚀 新着！2個目の道具
                 </div>
@@ -189,7 +201,7 @@
             </div>
 
             <!-- Tool 3: JSON / YAML / INI Converter -->
-            <div class="tool-card bg-white rounded-3xl p-6 sm:p-8 border-2 border-brand-500 shadow-xl shadow-brand-500/10 relative flex flex-col justify-between overflow-hidden">
+            <div class="tool-card order-2 bg-white rounded-3xl p-6 sm:p-8 border-2 border-brand-500 shadow-xl shadow-brand-500/10 relative flex flex-col justify-between overflow-hidden">
                 <div class="absolute top-0 right-0 bg-sky-600 text-white text-xs font-extrabold px-4 py-1.5 rounded-bl-2xl shadow-sm">
                     🛠️ 3個目の道具
                 </div>
@@ -216,7 +228,7 @@
             </div>
 
             <!-- Tool 4: Excel / CSV to Markdown Converter -->
-            <div class="tool-card bg-white rounded-3xl p-6 sm:p-8 border-2 border-brand-500 shadow-xl shadow-brand-500/10 relative flex flex-col justify-between overflow-hidden">
+            <div class="tool-card order-2 bg-white rounded-3xl p-6 sm:p-8 border-2 border-brand-500 shadow-xl shadow-brand-500/10 relative flex flex-col justify-between overflow-hidden">
                 <div class="absolute top-0 right-0 bg-amber-500 text-white text-xs font-extrabold px-4 py-1.5 rounded-bl-2xl shadow-sm">
                     📊 4個目の道具
                 </div>
@@ -236,6 +248,33 @@
                         <span class="bg-slate-100 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-xl">Markdown</span>
                     </div>
                     <a href="excel_csv_markdown.html" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 px-6 rounded-2xl transition-all shadow-md shadow-brand-600/30 flex items-center justify-center space-x-2">
+                        <span>変換ツールを開く</span>
+                        <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Tool 5: Excel to PDF / Image Converter -->
+            <div class="tool-card order-2 bg-white rounded-3xl p-6 sm:p-8 border-2 border-brand-500 shadow-xl shadow-brand-500/10 relative flex flex-col justify-between overflow-hidden">
+                <div class="absolute top-0 right-0 bg-rose-500 text-white text-xs font-extrabold px-4 py-1.5 rounded-bl-2xl shadow-sm">
+                    📄 5個目の道具
+                </div>
+                <div>
+                    <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-sm border border-brand-100">
+                        <i class="fa-solid fa-file-pdf"></i>
+                    </div>
+                    <h4 class="text-2xl font-bold text-slate-900 mb-3">方眼紙Excel PDF / 画像変換</h4>
+                    <p class="text-slate-600 text-sm sm:text-base leading-relaxed mb-6 font-medium">
+                        方眼紙形式のExcelファイルを、罫線を保ったままPDFやPNG画像へ変換するツール。シートを選んで、そのまま保存できます！
+                    </p>
+                </div>
+                <div>
+                    <div class="flex flex-wrap gap-2 mb-8">
+                        <span class="bg-slate-100 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-xl">Excel</span>
+                        <span class="bg-slate-100 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-xl">PDF</span>
+                        <span class="bg-slate-100 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-xl">PNG</span>
+                    </div>
+                    <a href="excel_pdf.html" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 px-6 rounded-2xl transition-all shadow-md shadow-brand-600/30 flex items-center justify-center space-x-2">
                         <span>変換ツールを開く</span>
                         <i class="fa-solid fa-arrow-right text-xs"></i>
                     </a>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mermaid ER図デザイナー</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Inter', sans-serif; }</style>
+</head>
+<body class="h-full bg-slate-50 text-slate-800 flex flex-col">
+    <header class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shrink-0 shadow-sm">
+        <div class="flex items-center space-x-3">
+            <a href="index.html" class="bg-slate-100 hover:bg-slate-200 text-slate-700 p-2.5 rounded-xl transition" title="道具箱のトップへ戻る"><i class="fa-solid fa-arrow-left"></i></a>
+            <div class="bg-blue-600 text-white p-2.5 rounded-xl shadow-md"><i class="fa-solid fa-database text-xl"></i></div>
+            <div><h1 class="text-xl font-bold tracking-tight text-slate-900">Mermaid ER図デザイナー</h1><p class="text-xs text-slate-500">テーブルとリレーションをGUIで作成</p></div>
+        </div>
+        <div class="flex items-center space-x-2">
+            <button onclick="loadSample()" class="px-3 py-2 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg"><i class="fa-solid fa-bolt mr-1"></i>サンプル読込</button>
+            <button onclick="openImport()" class="px-3 py-2 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg"><i class="fa-solid fa-file-import mr-1"></i>既存コードのインポート</button>
+            <button onclick="resetData()" class="px-3 py-2 text-xs font-medium text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg"><i class="fa-solid fa-trash-can mr-1"></i>リセット</button>
+        </div>
+    </header>
+    <main class="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        <section class="w-full lg:w-1/2 flex flex-col bg-white border-r border-slate-200 overflow-hidden">
+            <div class="flex items-center justify-between border-b border-slate-200 bg-slate-50/50 p-4"><div><h2 class="text-base font-bold">テーブルとリレーション設定</h2><p class="text-xs text-slate-500">データベース構造を視覚的に定義します</p></div><button onclick="addTable()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 rounded-lg"><i class="fa-solid fa-plus mr-1"></i>テーブル追加</button></div>
+            <div class="flex-1 overflow-y-auto p-6 space-y-5">
+                <div id="tables" class="space-y-4"></div>
+                <div class="pt-4 border-t border-slate-200"><div class="flex items-center justify-between mb-3"><h3 class="text-sm font-bold">リレーション設定</h3><button onclick="addRelation()" class="bg-slate-800 text-white text-xs px-3 py-1.5 rounded-lg"><i class="fa-solid fa-link mr-1"></i>追加</button></div><div id="relations" class="space-y-2"></div></div>
+            </div>
+        </section>
+        <section class="w-full lg:w-1/2 flex flex-col bg-slate-100 overflow-hidden">
+            <div class="bg-white border-b border-slate-200 px-6 py-3 flex justify-between"><span class="text-xs font-semibold"><i class="fa-solid fa-circle text-emerald-500 mr-2"></i>リアルタイムプレビュー</span><div class="space-x-2"><button onclick="copyCode()" class="border border-slate-300 px-3 py-1.5 rounded-lg text-xs"><i class="fa-regular fa-copy mr-1"></i>コピー</button><button onclick="downloadCode()" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs"><i class="fa-solid fa-download mr-1"></i>保存</button></div></div>
+            <div class="flex-1 m-4 p-6 overflow-auto flex items-center justify-center bg-white rounded-2xl shadow-inner border border-slate-200 min-h-[300px]"><div id="preview" class="w-full flex justify-center"></div></div>
+            <details class="mx-4 mb-4 bg-slate-900 text-slate-200 rounded-xl overflow-hidden"><summary class="px-4 py-2.5 text-xs font-mono cursor-pointer">自動生成されたMermaidコード</summary><pre id="code" class="p-4 text-xs text-emerald-400 overflow-auto max-h-40"></pre></details>
+        </section>
+    </main>
+    <div id="import-modal" class="hidden fixed inset-0 bg-slate-900/40 items-center justify-center p-4 z-40"><div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden"><div class="flex justify-between px-5 py-4 border-b"><div><h2 class="font-bold">既存ER図コードをインポート</h2><p class="text-xs text-slate-500 mt-1">erDiagramから始まるコードを貼り付けてください</p></div><button onclick="closeImport()" class="text-slate-400 p-1"><i class="fa-solid fa-xmark"></i></button></div><textarea id="import-text" rows="14" placeholder="erDiagram\n    users {\n        int id PK\n    }" class="w-full bg-slate-950 text-emerald-300 p-4 text-sm font-mono"></textarea><div class="flex justify-end gap-2 p-4 bg-slate-50 border-t"><button onclick="closeImport()" class="px-4 py-2 text-sm border rounded-lg">キャンセル</button><button onclick="importCode()" class="px-4 py-2 text-sm text-white bg-blue-600 rounded-lg">GUIへ展開</button></div></div></div>
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl text-xs translate-y-20 opacity-0 transition-all"><span id="toast-text"></span></div>
+<script>
+mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'loose' });
+let data;
+function sampleData() { return { tables: [{ id: 't1', name: 'users', columns: [{ id: 'c1', name: 'id', type: 'int', constraint: 'PK' }, { id: 'c2', name: 'username', type: 'varchar', constraint: '' }, { id: 'c3', name: 'email', type: 'varchar', constraint: '' }] }, { id: 't2', name: 'posts', columns: [{ id: 'c4', name: 'id', type: 'int', constraint: 'PK' }, { id: 'c5', name: 'user_id', type: 'int', constraint: 'FK' }, { id: 'c6', name: 'title', type: 'varchar', constraint: '' }] }], relations: [{ id: 'r1', fromTable: 'users', toTable: 'posts', type: '||--o{' }] }; }
+function loadSample() { data = sampleData(); render(); toast('サンプルデータをロードしました'); }
+function resetData() { data = { tables: [], relations: [] }; render(); toast('リセットしました'); }
+function id(prefix) { return prefix + '_' + Math.random().toString(36).substring(2, 8); }
+function addTable() { data.tables.push({ id: id('t'), name: 'new_table', columns: [{ id: id('c'), name: 'id', type: 'int', constraint: 'PK' }] }); render(); }
+function addColumn(tableId) { const table = data.tables.find(item => item.id === tableId); table.columns.push({ id: id('c'), name: 'column_name', type: 'varchar', constraint: '' }); render(); }
+function removeTable(tableId) { data.tables = data.tables.filter(item => item.id !== tableId); data.relations = data.relations.filter(item => item.fromTable !== tableId && item.toTable !== tableId); render(); }
+function removeColumn(tableId, columnId) { const table = data.tables.find(item => item.id === tableId); table.columns = table.columns.filter(item => item.id !== columnId); render(); }
+function addRelation() { if (data.tables.length < 2) return toast('リレーションには2つ以上のテーブルが必要です'); data.relations.push({ id: id('r'), fromTable: data.tables[0].name, toTable: data.tables[1].name, type: '||--o{' }); render(); }
+function removeRelation(relationId) { data.relations = data.relations.filter(item => item.id !== relationId); render(); }
+function updateTable(tableId, value) { const table = data.tables.find(item => item.id === tableId); table.name = value; const relation = data.relations; relation.forEach(item => { if (item.fromTable === tableId) item.fromTable = value; if (item.toTable === tableId) item.toTable = value; }); renderDiagram(); }
+function updateColumn(tableId, columnId, field, value) { const table = data.tables.find(item => item.id === tableId); table.columns.find(item => item.id === columnId)[field] = value; renderDiagram(); }
+function safe(value, fallback) { const result = String(value || '').trim().replace(/[^A-Za-z0-9_]/g, '_') || fallback; return /^[A-Za-z_]/.test(result) ? result : '_' + result; }
+function generateCode() { let result = 'erDiagram\n'; data.tables.forEach(table => { const name = safe(table.name, 'unnamed'); result += `    ${name} {\n`; table.columns.forEach(column => { result += `        ${column.type || 'varchar'} ${safe(column.name, 'column')}${column.constraint ? ' ' + column.constraint : ''}\n`; }); result += '    }\n'; }); data.relations.forEach(relation => { result += `    ${safe(relation.fromTable, 'tableA')} ${relation.type} ${safe(relation.toTable, 'tableB')} : "relates"\n`; }); return result; }
+function render() { renderGui(); renderDiagram(); }
+function renderGui() { document.getElementById('tables').innerHTML = data.tables.map(table => `<div class="bg-slate-50 border rounded-xl p-4 space-y-3"><div class="flex gap-2 items-center"><input value="${table.name}" oninput="updateTable('${table.id}', this.value)" class="flex-1 bg-white border rounded-lg px-2 py-1 text-sm font-bold"><button onclick="addColumn('${table.id}')" class="text-xs border bg-white px-2 py-1 rounded">カラム追加</button><button onclick="removeTable('${table.id}')" class="text-rose-500 p-1"><i class="fa-solid fa-trash"></i></button></div>${table.columns.map(column => `<div class="flex gap-2 pl-4"><input value="${column.name}" oninput="updateColumn('${table.id}','${column.id}','name',this.value)" class="flex-1 border rounded px-2 py-1 text-xs"><select onchange="updateColumn('${table.id}','${column.id}','type',this.value)" class="border rounded text-xs"><option ${column.type === 'int' ? 'selected' : ''}>int</option><option ${column.type === 'varchar' ? 'selected' : ''}>varchar</option><option ${column.type === 'text' ? 'selected' : ''}>text</option><option ${column.type === 'boolean' ? 'selected' : ''}>boolean</option></select><select onchange="updateColumn('${table.id}','${column.id}','constraint',this.value)" class="border rounded text-xs"><option value="" ${!column.constraint ? 'selected' : ''}>なし</option><option value="PK" ${column.constraint === 'PK' ? 'selected' : ''}>PK</option><option value="FK" ${column.constraint === 'FK' ? 'selected' : ''}>FK</option><option value="UK" ${column.constraint === 'UK' ? 'selected' : ''}>UK</option></select><button onclick="removeColumn('${table.id}','${column.id}')" class="text-rose-500"><i class="fa-solid fa-xmark"></i></button></div>`).join('')}</div>`).join(''); document.getElementById('relations').innerHTML = data.relations.map(relation => `<div class="flex gap-2 items-center"><select onchange="relationValue('${relation.id}','fromTable',this.value)" class="flex-1 border rounded px-2 py-1 text-xs">${data.tables.map(table => `<option value="${table.name}" ${table.name === relation.fromTable ? 'selected' : ''}>${table.name}</option>`).join('')}</select><select onchange="relationValue('${relation.id}','type',this.value)" class="border rounded px-2 py-1 text-xs"><option value="||--o{" ${relation.type === '||--o{' ? 'selected' : ''}>1対多</option><option value="||--||" ${relation.type === '||--||' ? 'selected' : ''}>1対1</option><option value="}o--o{" ${relation.type === '}o--o{' ? 'selected' : ''}>多対多</option></select><select onchange="relationValue('${relation.id}','toTable',this.value)" class="flex-1 border rounded px-2 py-1 text-xs">${data.tables.map(table => `<option value="${table.name}" ${table.name === relation.toTable ? 'selected' : ''}>${table.name}</option>`).join('')}</select><button onclick="removeRelation('${relation.id}')" class="text-rose-500"><i class="fa-solid fa-trash"></i></button></div>`).join(''); }
+function relationValue(relationId, field, value) { const relation = data.relations.find(item => item.id === relationId); relation[field] = value; renderDiagram(); }
+async function renderDiagram() { const code = generateCode(); document.getElementById('code').textContent = code; try { const result = await mermaid.render('er-' + Date.now(), code); document.getElementById('preview').innerHTML = result.svg; } catch (error) { document.getElementById('preview').innerHTML = '<p class="text-rose-500 text-sm">Mermaidコードを描画できません</p>'; } }
+function openImport() { document.getElementById('import-modal').classList.remove('hidden'); document.getElementById('import-modal').classList.add('flex'); document.getElementById('import-text').focus(); }
+function closeImport() { document.getElementById('import-modal').classList.add('hidden'); document.getElementById('import-modal').classList.remove('flex'); }
+function importCode() { try { const lines = document.getElementById('import-text').value.split(/\r?\n/); if (lines.find(line => line.trim().toLowerCase()) !== 'erdiagram') throw new Error('erDiagramから始まるコードを入力してください'); const tables = []; const relations = []; let current = null; lines.slice(1).forEach(line => { const table = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*\{\s*$/); const column = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s+([A-Za-z_][A-Za-z0-9_]*)(?:\s+(PK|FK|UK))?\s*$/); const relation = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s+(\|\|--o\{|\|\|--\|\||\}o--o\{|\|o--o\{)\s+([A-Za-z_][A-Za-z0-9_]*)/); if (table) { current = { id: id('t'), name: table[1], columns: [] }; tables.push(current); } else if (line.trim() === '}') current = null; else if (current && column) current.columns.push({ id: id('c'), type: column[1], name: column[2], constraint: column[3] || '' }); else if (relation) relations.push({ id: id('r'), fromTable: relation[1], type: relation[2], toTable: relation[3] }); }); if (!tables.length) throw new Error('テーブルを読み取れませんでした'); data = { tables, relations }; closeImport(); render(); toast('ER図をGUIへ展開しました'); } catch (error) { toast(error.message); } }
+function copyCode() { navigator.clipboard.writeText(generateCode()); toast('コードをコピーしました'); }
+function downloadCode() { const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([generateCode()], { type: 'text/plain;charset=utf-8' })); link.download = 'er-diagram.mmd'; link.click(); toast('ファイルを保存しました'); }
+function toast(message) { const element = document.getElementById('toast'); document.getElementById('toast-text').textContent = message; element.classList.remove('translate-y-20', 'opacity-0'); setTimeout(() => element.classList.add('translate-y-20', 'opacity-0'), 2200); }
+window.onload = () => { data = sampleData(); render(); };
+</script>
+</body>
+</html>

@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="ja" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>直感Mermaidデザイナー</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Mermaid.js -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .dragging { opacity: 0.4; background: #e2e8f0; }
+        .drag-over { border-top: 2px solid #3b82f6; }
+    </style>
+</head>
+<body class="h-full bg-slate-50 text-slate-800 flex flex-col">
+
+    <header class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shrink-0 shadow-sm">
+        <div class="flex items-center space-x-3">
+            <a href="index.html" class="bg-slate-100 hover:bg-slate-200 text-slate-700 p-2.5 rounded-xl transition" title="道具箱のトップへ戻る">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <div class="bg-blue-600 text-white p-2.5 rounded-xl shadow-md flex items-center justify-center">
+                <i class="fa-solid fa-diagram-project text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight text-slate-900">直感Mermaidデザイナー</h1>
+                <p class="text-xs text-slate-500">GUIでポチポチ操作して綺麗なダイアグラムを自動生成</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button onclick="loadSampleData()" class="px-3.5 py-2 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition">
+                <i class="fa-solid fa-bolt mr-1.5"></i> サンプル読込
+            </button>
+            <button onclick="openImportModal()" class="px-3.5 py-2 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition">
+                <i class="fa-solid fa-file-import mr-1.5"></i> 既存コードのインポート
+            </button>
+            <button onclick="resetAllData()" class="px-3.5 py-2 text-xs font-medium text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition">
+                <i class="fa-solid fa-trash-can mr-1.5"></i> リセット
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        
+        <!-- Left Panel: Controls & GUI Builder -->
+        <div class="w-full lg:w-1/2 flex flex-col bg-white border-r border-slate-200 overflow-hidden">
+            
+            <!-- Mode Selector Tabs -->
+            <div class="flex border-b border-slate-200 bg-slate-50/50 p-2 gap-2">
+                <button onclick="switchMode('er')" id="tab-er" class="flex-1 py-2.5 px-4 text-sm font-semibold rounded-lg transition flex items-center justify-center space-x-2 bg-blue-600 text-white shadow-sm">
+                    <i class="fa-solid fa-database"></i>
+                    <span>ER図モード</span>
+                </button>
+                <button onclick="switchMode('sequence')" id="tab-sequence" class="flex-1 py-2.5 px-4 text-sm font-semibold rounded-lg transition flex items-center justify-center space-x-2 text-slate-600 hover:bg-slate-200/60">
+                    <i class="fa-solid fa-right-left"></i>
+                    <span>シーケンス図モード</span>
+                </button>
+            </div>
+
+            <!-- Scrollable Editor Area -->
+            <div class="flex-1 overflow-y-auto p-6 space-y-6">
+                
+                <!-- ================= ER DIAGRAM BUILDER ================= -->
+                <div id="panel-er" class="space-y-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-base font-bold text-slate-800">テーブルとリレーション設定</h2>
+                            <p class="text-xs text-slate-500">データベースの構造を視覚的に定義します</p>
+                        </div>
+                        <button onclick="addTable()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-3.5 py-2 rounded-lg shadow transition flex items-center space-x-1.5">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>テーブル追加</span>
+                        </button>
+                    </div>
+
+                    <!-- Tables Container -->
+                    <div id="er-tables-container" class="space-y-4">
+                        <!-- Dynamic Tables injected here -->
+                    </div>
+
+                    <!-- Relations Section -->
+                    <div class="pt-4 border-t border-slate-200">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-sm font-bold text-slate-800">リレーション設定</h3>
+                            <button onclick="addRelation()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition flex items-center space-x-1">
+                                <i class="fa-solid fa-link text-xs"></i>
+                                <span>リレーション追加</span>
+                            </button>
+                        </div>
+                        <div id="er-relations-container" class="space-y-2">
+                            <!-- Dynamic Relations injected here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= SEQUENCE DIAGRAM BUILDER ================= -->
+                <div id="panel-sequence" class="space-y-6 hidden">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-base font-bold text-slate-800">アクターとメッセージ設定</h2>
+                            <p class="text-xs text-slate-500">ドラッグ＆ドロップでメッセージの順序を入れ替えられます</p>
+                        </div>
+                        <button onclick="addActor()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-3.5 py-2 rounded-lg shadow transition flex items-center space-x-1.5">
+                            <i class="fa-solid fa-user-plus"></i>
+                            <span>アクター追加</span>
+                        </button>
+                    </div>
+
+                    <!-- Actors List Tags -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <label class="block text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wider">定義済みアクター</label>
+                        <div id="seq-actors-container" class="flex flex-wrap gap-2">
+                            <!-- Dynamic actor chips injected here -->
+                        </div>
+                        <div class="mt-3 flex gap-2">
+                            <input type="text" id="new-actor-input" placeholder="例: 決済API" class="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <button onclick="createActorFromInput()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-1.5 rounded-lg text-sm transition">追加</button>
+                        </div>
+                    </div>
+
+                    <!-- Messages Builder -->
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-bold text-slate-800">メッセージフロー (タイムライン順)</h3>
+                            <button onclick="addMessage()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition flex items-center space-x-1">
+                                <i class="fa-solid fa-arrow-right-arrow-left text-xs"></i>
+                                <span>メッセージ追加</span>
+                            </button>
+                        </div>
+                        <div id="seq-messages-container" class="space-y-2">
+                            <!-- Dynamic Messages injected here -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Right Panel: Realtime Preview & Mermaid Code Output -->
+        <div class="w-full lg:w-1/2 flex flex-col bg-slate-100 overflow-hidden">
+            
+            <!-- Output Actions Toolbar -->
+            <div class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between shrink-0 shadow-sm">
+                <div class="flex items-center space-x-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span class="text-xs font-semibold text-slate-700">リアルタイムプレビュー</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="copyCode()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center space-x-1.5 shadow-sm">
+                        <i class="fa-regular fa-copy"></i>
+                        <span>コードをコピー</span>
+                    </button>
+                    <button onclick="downloadCode()" class="bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-medium transition flex items-center space-x-1.5 shadow">
+                        <i class="fa-solid fa-download"></i>
+                        <span>保存 (.mmd)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Visual Preview Canvas Container -->
+            <div class="flex-1 p-6 overflow-auto flex items-center justify-center bg-white m-4 rounded-2xl shadow-inner border border-slate-200 min-h-[300px]">
+                <div id="mermaid-preview" class="w-full h-full flex items-center justify-center text-slate-400">
+                    <div class="text-center">
+                        <i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i>
+                        <p class="text-sm">レンダリング中...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Raw Mermaid Code Accordion/Box -->
+            <div class="px-4 pb-4 shrink-0">
+                <details class="bg-slate-900 text-slate-200 rounded-xl overflow-hidden shadow-md">
+                    <summary class="px-4 py-2.5 text-xs font-mono font-medium cursor-pointer hover:bg-slate-800 transition flex items-center justify-between">
+                        <span><i class="fa-solid fa-code mr-2 text-blue-400"></i>自動生成されたMermaidコードを表示</span>
+                        <i class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
+                    </summary>
+                    <div class="p-4 bg-slate-950 font-mono text-xs overflow-x-auto max-h-40 border-t border-slate-800">
+                        <pre id="raw-code-output" class="text-emerald-400 leading-relaxed"></pre>
+                    </div>
+                </details>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl text-xs transform translate-y-20 opacity-0 transition-all duration-300 flex items-center space-x-2 z-50">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
+        <span id="toast-message">操作が完了しました</span>
+    </div>
+
+    <div id="import-modal" class="hidden fixed inset-0 bg-slate-900/40 items-center justify-center p-4 z-40">
+        <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200">
+                <div>
+                    <h2 class="text-base font-bold text-slate-900">既存Mermaidコードをインポート</h2>
+                    <p class="text-xs text-slate-500 mt-1">ER図またはシーケンス図のコードを貼り付けてください</p>
+                </div>
+                <button onclick="closeImportModal()" class="text-slate-400 hover:text-slate-700 p-1" title="閉じる">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-5">
+                <textarea id="import-code" rows="14" placeholder="erDiagram\n    users {\n        int id PK\n    }" class="w-full bg-slate-950 text-emerald-300 border border-slate-700 rounded-xl p-4 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+            <div class="flex justify-end gap-2 px-5 py-4 bg-slate-50 border-t border-slate-200">
+                <button onclick="closeImportModal()" class="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-100">キャンセル</button>
+                <button onclick="importMermaidCode()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"><i class="fa-solid fa-file-import mr-1.5"></i>GUIへ展開</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'loose' });
+
+        // App State
+        let currentMode = 'er'; // 'er' or 'sequence'
+
+        let erData = {
+            tables: [
+                {
+                    id: 't1',
+                    name: 'users',
+                    columns: [
+                        { id: 'c1', name: 'id', type: 'int', constraint: 'PK' },
+                        { id: 'c2', name: 'username', type: 'varchar', constraint: '' },
+                        { id: 'c3', name: 'email', type: 'varchar', constraint: '' }
+                    ]
+                },
+                {
+                    id: 't2',
+                    name: 'posts',
+                    columns: [
+                        { id: 'c4', name: 'id', type: 'int', constraint: 'PK' },
+                        { id: 'c5', name: 'user_id', type: 'int', constraint: 'FK' },
+                        { id: 'c6', name: 'title', type: 'varchar', constraint: '' }
+                    ]
+                }
+            ],
+            relations: [
+                { id: 'r1', fromTable: 'users', toTable: 'posts', type: '||--o{' }
+            ]
+        };
+
+        let seqData = {
+            actors: ['Client', 'Server', 'Database'],
+            messages: [
+                { id: 'm1', from: 'Client', to: 'Server', arrow: '->>', text: 'APIリクエスト (GET /users)' },
+                { id: 'm2', from: 'Server', to: 'Database', arrow: '->>', text: 'SELECT * FROM users' },
+                { id: 'm3', from: 'Database', to: 'Server', arrow: '-->>', text: 'レコード返却' },
+                { id: 'm4', from: 'Server', to: 'Client', arrow: '-->>', text: 'JSONレスポンス' }
+            ]
+        };
+
+        // Switch mode tabs
+        function switchMode(mode) {
+            currentMode = mode;
+            const btnEr = document.getElementById('tab-er');
+            const btnSeq = document.getElementById('tab-sequence');
+            const panelEr = document.getElementById('panel-er');
+            const panelSeq = document.getElementById('panel-sequence');
+
+            if (mode === 'er') {
+                btnEr.className = "flex-1 py-2.5 px-4 text-sm font-semibold rounded-lg transition flex items-center justify-center space-x-2 bg-blue-600 text-white shadow-sm";
+                btnSeq.className = "flex-1 py-2.5 px-4 text-sm font-semibold rounded-lg transition flex items-center justify-center space-x-2 text-slate-600 hover:bg-slate-200/60";
+                panelEr.classList.remove('hidden');
+                panelSeq.classList.add('hidden');
+            } else {
+                btnSeq.className = "flex-1 py-2.5 px-4 text-sm font-semibold rounded-lg transition flex items-center justify-center space-x-2 bg-blue-600 text-white shadow-sm";
+                btnEr.className = "flex-1 py-2.5 px-4 text-sm font-semibold rounded-lg transition flex items-center justify-center space-x-2 text-slate-600 hover:bg-slate-200/60";
+                panelSeq.classList.remove('hidden');
+                panelEr.classList.add('hidden');
+            }
+            renderAll();
+        }
+
+        // --- ER DIAGRAM FUNCTIONS ---
+        function addTable() {
+            const newId = 't_' + Math.random().toString(36).substring(2, 7);
+            erData.tables.push({
+                id: newId,
+                name: 'new_table',
+                columns: [
+                    { id: 'c_' + Date.now(), name: 'id', type: 'int', constraint: 'PK' }
+                ]
+            });
+            renderAll();
+        }
+
+        function removeTable(tableId) {
+            erData.tables = erData.tables.filter(t => t.id !== tableId);
+            renderAll();
+        }
+
+        function updateTableName(tableId, newName) {
+            const table = erData.tables.find(t => t.id === tableId);
+            if (table) table.name = newName.trim();
+            renderPreviewAndCode();
+        }
+
+        function addColumn(tableId) {
+            const table = erData.tables.find(t => t.id === tableId);
+            if (table) {
+                table.columns.push({
+                    id: 'c_' + Math.random().toString(36).substring(2, 7),
+                    name: 'column_name',
+                    type: 'varchar',
+                    constraint: ''
+                });
+                renderAll();
+            }
+        }
+
+        function removeColumn(tableId, colId) {
+            const table = erData.tables.find(t => t.id === tableId);
+            if (table) {
+                table.columns = table.columns.filter(c => c.id !== colId);
+                renderAll();
+            }
+        }
+
+        function updateColumn(tableId, colId, field, val) {
+            const table = erData.tables.find(t => t.id === tableId);
+            if (table) {
+                const col = table.columns.find(c => c.id === colId);
+                if (col) {
+                    col[field] = val;
+                    renderPreviewAndCode();
+                }
+            }
+        }
+
+        function addRelation() {
+            if (erData.tables.length < 2) {
+                showToast('リレーションには少なくとも2つのテーブルが必要です');
+                return;
+            }
+            erData.relations.push({
+                id: 'r_' + Math.random().toString(36).substring(2, 7),
+                fromTable: erData.tables[0].name,
+                toTable: erData.tables[1].name,
+                type: '||--o{'
+            });
+            renderAll();
+        }
+
+        function removeRelation(relId) {
+            erData.relations = erData.relations.filter(r => r.id !== relId);
+            renderAll();
+        }
+
+        function updateRelation(relId, field, val) {
+            const rel = erData.relations.find(r => r.id === relId);
+            if (rel) {
+                rel[field] = val;
+                renderPreviewAndCode();
+            }
+        }
+
+        // --- SEQUENCE DIAGRAM FUNCTIONS ---
+        function addActor() {
+            const name = prompt('追加するアクター名を入力してください (例: 外部API):');
+            if (name && name.trim()) {
+                if (!seqData.actors.includes(name.trim())) {
+                    seqData.actors.push(name.trim());
+                    renderAll();
+                }
+            }
+        }
+
+        function createActorFromInput() {
+            const input = document.getElementById('new-actor-input');
+            const name = input.value.trim();
+            if (name && !seqData.actors.includes(name)) {
+                seqData.actors.push(name);
+                input.value = '';
+                renderAll();
+            }
+        }
+
+        function removeActor(actorName) {
+            seqData.actors = seqData.actors.filter(a => a !== actorName);
+            // Remove associated messages
+            seqData.messages = seqData.messages.filter(m => m.from !== actorName && m.to !== actorName);
+            renderAll();
+        }
+
+        function addMessage() {
+            if (seqData.actors.length === 0) {
+                showToast('先に対象のアクターを追加してください');
+                return;
+            }
+            seqData.messages.push({
+                id: 'm_' + Math.random().toString(36).substring(2, 7),
+                from: seqData.actors[0],
+                to: seqData.actors[1] || seqData.actors[0],
+                arrow: '->>',
+                text: 'メッセージ内容'
+            });
+            renderAll();
+        }
+
+        function removeMessage(msgId) {
+            seqData.messages = seqData.messages.filter(m => m.id !== msgId);
+            renderAll();
+        }
+
+        function updateMessage(msgId, field, val) {
+            const msg = seqData.messages.find(m => m.id === msgId);
+            if (msg) {
+                msg[field] = val;
+                renderPreviewAndCode();
+            }
+        }
+
+        // Drag and Drop for Sequence Messages
+        let draggedMsgIndex = null;
+
+        function handleDragStart(e, index) {
+            draggedMsgIndex = index;
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragOver(e, index) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDrop(e, index) {
+            e.preventDefault();
+            if (draggedMsgIndex !== null && draggedMsgIndex !== index) {
+                const movedItem = seqData.messages.splice(draggedMsgIndex, 1)[0];
+                seqData.messages.splice(index, 0, movedItem);
+                renderAll();
+            }
+            draggedMsgIndex = null;
+        }
+
+        // --- CODE GENERATION ---
+        function toMermaidIdentifier(value, fallback = 'item') {
+            const identifier = String(value || '')
+                .trim()
+                .replace(/[^A-Za-z0-9_]/g, '_');
+            const safeIdentifier = identifier || fallback;
+            return /^[A-Za-z_]/.test(safeIdentifier) ? safeIdentifier : `_${safeIdentifier}`;
+        }
+
+        function loadSampleData() {
+            erData = {
+                tables: [
+                    { id: 't1', name: 'users', columns: [
+                        { id: 'c1', name: 'id', type: 'int', constraint: 'PK' },
+                        { id: 'c2', name: 'username', type: 'varchar', constraint: '' },
+                        { id: 'c3', name: 'email', type: 'varchar', constraint: '' }
+                    ] },
+                    { id: 't2', name: 'posts', columns: [
+                        { id: 'c4', name: 'id', type: 'int', constraint: 'PK' },
+                        { id: 'c5', name: 'user_id', type: 'int', constraint: 'FK' },
+                        { id: 'c6', name: 'title', type: 'varchar', constraint: '' }
+                    ] }
+                ],
+                relations: [{ id: 'r1', fromTable: 'users', toTable: 'posts', type: '||--o{' }]
+            };
+            seqData = {
+                actors: ['Client', 'Server', 'Database'],
+                messages: [
+                    { id: 'm1', from: 'Client', to: 'Server', arrow: '->>', text: 'APIリクエスト (GET /users)' },
+                    { id: 'm2', from: 'Server', to: 'Database', arrow: '->>', text: 'SELECT * FROM users' },
+                    { id: 'm3', from: 'Database', to: 'Server', arrow: '-->>', text: 'レコード返却' },
+                    { id: 'm4', from: 'Server', to: 'Client', arrow: '-->>', text: 'JSONレスポンス' }
+                ]
+            };
+            currentMode = 'er';
+            switchMode('er');
+            showToast('サンプルデータをロードしました');
+        }
+
+        function openImportModal() {
+            const modal = document.getElementById('import-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.getElementById('import-code').focus();
+        }
+
+        function closeImportModal() {
+            const modal = document.getElementById('import-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function parseImportedMermaid(code) {
+            const lines = code.split(/\r?\n/);
+            const firstLine = lines.find(line => line.trim());
+            if (!firstLine) throw new Error('コードが空です');
+
+            if (firstLine.trim().toLowerCase() === 'erdiagram') {
+                const tables = [];
+                const relations = [];
+                let currentTable = null;
+                lines.slice(1).forEach(line => {
+                    const tableMatch = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*\{\s*$/);
+                    const columnMatch = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s+([A-Za-z_][A-Za-z0-9_]*)(?:\s+(PK|FK|UK))?\s*$/);
+                    const relationMatch = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s+(\|\|--o\{|\|\|--\|\||\}o--o\{|\|o--o\{)\s+([A-Za-z_][A-Za-z0-9_]*)\s*(?::.*)?$/);
+
+                    if (tableMatch) {
+                        currentTable = { id: `t_${tables.length}`, name: tableMatch[1], columns: [] };
+                        tables.push(currentTable);
+                    } else if (line.trim() === '}') {
+                        currentTable = null;
+                    } else if (currentTable && columnMatch) {
+                        currentTable.columns.push({
+                            id: `c_${tables.length}_${currentTable.columns.length}`,
+                            type: columnMatch[1],
+                            name: columnMatch[2],
+                            constraint: columnMatch[3] || ''
+                        });
+                    } else if (relationMatch) {
+                        relations.push({
+                            id: `r_${relations.length}`,
+                            fromTable: relationMatch[1],
+                            type: relationMatch[2],
+                            toTable: relationMatch[3]
+                        });
+                    }
+                });
+                if (tables.length === 0) throw new Error('ER図のテーブルを読み取れませんでした');
+                return { mode: 'er', data: { tables, relations } };
+            }
+
+            if (firstLine.trim().toLowerCase() === 'sequencediagram') {
+                const actors = [];
+                const labels = new Map();
+                const messages = [];
+                lines.slice(1).forEach(line => {
+                    const participantMatch = line.match(/^\s*participant\s+([A-Za-z_][A-Za-z0-9_]*)(?:\s+as\s+"([^"]*)")?\s*$/);
+                    const messageMatch = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*(->>|-->>|->|-x|-)\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(.*)$/);
+                    if (participantMatch) {
+                        if (!actors.includes(participantMatch[1])) actors.push(participantMatch[1]);
+                        labels.set(participantMatch[1], participantMatch[2] || participantMatch[1]);
+                    } else if (messageMatch) {
+                        if (!actors.includes(messageMatch[1])) actors.push(messageMatch[1]);
+                        if (!actors.includes(messageMatch[3])) actors.push(messageMatch[3]);
+                        messages.push({ id: `m_${messages.length}`, from: messageMatch[1], to: messageMatch[3], arrow: messageMatch[2], text: messageMatch[4] });
+                    }
+                });
+                if (actors.length === 0) throw new Error('シーケンス図のアクターを読み取れませんでした');
+                return {
+                    mode: 'sequence',
+                    data: {
+                        actors: actors.map(actor => labels.get(actor) || actor),
+                        messages: messages.map(message => ({ ...message, from: labels.get(message.from) || message.from, to: labels.get(message.to) || message.to }))
+                    }
+                };
+            }
+
+            throw new Error('erDiagram または sequenceDiagram から始まるコードを入力してください');
+        }
+
+        function importMermaidCode() {
+            const code = document.getElementById('import-code').value.trim();
+            try {
+                const imported = parseImportedMermaid(code);
+                currentMode = imported.mode;
+                if (imported.mode === 'er') erData = imported.data;
+                else seqData = imported.data;
+                closeImportModal();
+                switchMode(imported.mode);
+                showToast('MermaidコードをGUIへ展開しました');
+            } catch (err) {
+                showToast(err.message);
+            }
+        }
+
+        function generateMermaidCode() {
+            if (currentMode === 'er') {
+                let code = 'erDiagram\n';
+                erData.tables.forEach(t => {
+                    const tableName = toMermaidIdentifier(t.name, 'unnamed');
+                    code += `    ${tableName} {\n`;
+                    t.columns.forEach(c => {
+                        const colName = toMermaidIdentifier(c.name, 'col');
+                        const colType = c.type || 'varchar';
+                        const constraint = c.constraint ? ` ${c.constraint}` : '';
+                        code += `        ${colType} ${colName}${constraint}\n`;
+                    });
+                    code += `    }\n`;
+                });
+                erData.relations.forEach(r => {
+                    const fromT = toMermaidIdentifier(r.fromTable, 'tableA');
+                    const toT = toMermaidIdentifier(r.toTable, 'tableB');
+                    code += `    ${fromT} ${r.type} ${toT} : "relates"\n`;
+                });
+                return code;
+            } else {
+                let code = 'sequenceDiagram\n';
+                const actorIds = new Map(seqData.actors.map((actor, index) => [
+                    actor,
+                    toMermaidIdentifier(`actor_${index}_${actor}`, `actor_${index}`)
+                ]));
+                seqData.actors.forEach(a => {
+                    const actorId = actorIds.get(a);
+                    code += `    participant ${actorId} as "${String(a).replace(/"/g, '\\"')}"\n`;
+                });
+                seqData.messages.forEach(m => {
+                    const fromActor = actorIds.get(m.from) || toMermaidIdentifier(m.from, 'actor');
+                    const toActor = actorIds.get(m.to) || toMermaidIdentifier(m.to, 'actor');
+                    code += `    ${fromActor}${m.arrow}${toActor}: ${m.text}\n`;
+                });
+                return code;
+            }
+        }
+
+        // --- RENDERING GUI & PREVIEW ---
+        function renderAll() {
+            if (currentMode === 'er') {
+                renderErGui();
+            } else {
+                renderSeqGui();
+            }
+            renderPreviewAndCode();
+        }
+
+        function renderErGui() {
+            const container = document.getElementById('er-tables-container');
+            container.innerHTML = erData.tables.map(t => `
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 relative group">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2 flex-1 mr-2">
+                            <i class="fa-solid fa-table text-blue-500 text-xs"></i>
+                            <input type="text" value="${t.name}" oninput="updateTableName('${t.id}', this.value)" placeholder="テーブル名" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full max-w-xs">
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="addColumn('${t.id}')" class="text-xs bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 px-2.5 py-1 rounded-lg transition flex items-center space-x-1">
+                                <i class="fa-solid fa-plus text-[10px]"></i><span>カラム</span>
+                            </button>
+                            <button onclick="removeTable('${t.id}')" class="text-slate-400 hover:text-rose-600 p-1 rounded transition">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Columns list -->
+                    <div class="space-y-2 pl-4 border-l-2 border-blue-200">
+                        ${t.columns.map(c => `
+                            <div class="flex items-center space-x-2">
+                                <input type="text" value="${c.name}" oninput="updateColumn('${t.id}', '${c.id}', 'name', this.value)" placeholder="カラム名" class="bg-white border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 flex-1">
+                                <select onchange="updateColumn('${t.id}', '${c.id}', 'type', this.value)" class="bg-white border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 w-28">
+                                    <option value="int" ${c.type === 'int' ? 'selected' : ''}>int</option>
+                                    <option value="varchar" ${c.type === 'varchar' ? 'selected' : ''}>varchar</option>
+                                    <option value="text" ${c.type === 'text' ? 'selected' : ''}>text</option>
+                                    <option value="boolean" ${c.type === 'boolean' ? 'selected' : ''}>boolean</option>
+                                    <option value="timestamp" ${c.type === 'timestamp' ? 'selected' : ''}>timestamp</option>
+                                    <option value="date" ${c.type === 'date' ? 'selected' : ''}>date</option>
+                                </select>
+                                <select onchange="updateColumn('${t.id}', '${c.id}', 'constraint', this.value)" class="bg-white border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 w-20">
+                                    <option value="" ${c.constraint === '' ? 'selected' : ''}>なし</option>
+                                    <option value="PK" ${c.constraint === 'PK' ? 'selected' : ''}>PK</option>
+                                    <option value="FK" ${c.constraint === 'FK' ? 'selected' : ''}>FK</option>
+                                    <option value="UK" ${c.constraint === 'UK' ? 'selected' : ''}>UK</option>
+                                </select>
+                                <button onclick="removeColumn('${t.id}', '${c.id}')" class="text-slate-400 hover:text-rose-500 p-1">
+                                    <i class="fa-solid xmark fa-xmark text-xs"></i>
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+
+            // Render Relations UI
+            const relContainer = document.getElementById('er-relations-container');
+            const tableOptions = erData.tables.map(t => `<option value="${t.name}">${t.name}</option>`).join('');
+            relContainer.innerHTML = erData.relations.map(r => `
+                <div class="flex items-center space-x-2 bg-slate-50 border border-slate-200 p-2.5 rounded-xl">
+                    <select onchange="updateRelation('${r.id}', 'fromTable', this.value)" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs focus:outline-none flex-1">
+                        ${erData.tables.map(t => `<option value="${t.name}" ${t.name === r.fromTable ? 'selected' : ''}>${t.name}</option>`).join('')}
+                    </select>
+                    <select onchange="updateRelation('${r.id}', 'type', this.value)" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs focus:outline-none w-32 font-mono">
+                        <option value="||--o{" ${r.type === '||--o{' ? 'selected' : ''}>1対多 (||--o&#123;)</option>
+                        <option value="||--||" ${r.type === '||--||' ? 'selected' : ''}>1対1 (||--||)</option>
+                        <option value="}o--o{" ${r.type === '}o--o{' ? 'selected' : ''}>多対多 (&#125;o--o&#123;)</option>
+                        <option value="|o--o{" ${r.type === '|o--o{' ? 'selected' : ''}>0または1対多</option>
+                    </select>
+                    <select onchange="updateRelation('${r.id}', 'toTable', this.value)" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs focus:outline-none flex-1">
+                        ${erData.tables.map(t => `<option value="${t.name}" ${t.name === r.toTable ? 'selected' : ''}>${t.name}</option>`).join('')}
+                    </select>
+                    <button onclick="removeRelation('${r.id}')" class="text-slate-400 hover:text-rose-600 p-1">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function renderSeqGui() {
+            // Actors Chips
+            const actorContainer = document.getElementById('seq-actors-container');
+            actorContainer.innerHTML = seqData.actors.map(a => `
+                <span class="inline-flex items-center bg-white border border-slate-200 text-slate-700 px-3 py-1 rounded-lg text-xs font-medium shadow-sm">
+                    <i class="fa-solid fa-user mr-1.5 text-blue-500 text-[10px]"></i>
+                    ${a}
+                    ${seqData.actors.length > 1 ? `<button onclick="removeActor('${a}')" class="ml-2 text-slate-400 hover:text-rose-600"><i class="fa-solid fa-xmark"></i></button>` : ''}
+                </span>
+            `).join('');
+
+            // Messages Flow List with Drag and Drop
+            const msgContainer = document.getElementById('seq-messages-container');
+            const actorOptions = seqData.actors.map(a => `<option value="${a}">${a}</option>`).join('');
+            
+            msgContainer.innerHTML = seqData.messages.map((m, index) => `
+                <div draggable="true" 
+                     ondragstart="handleDragStart(event, ${index})" 
+                     ondragover="handleDragOver(event, ${index})" 
+                     ondrop="handleDrop(event, ${index})"
+                     class="flex items-center space-x-2 bg-white border border-slate-200 p-3 rounded-xl shadow-sm cursor-grab active:cursor-grabbing hover:border-blue-300 transition">
+                    <div class="text-slate-300 hover:text-slate-500 px-1">
+                        <i class="fa-solid fa-grip-vertical text-xs"></i>
+                    </div>
+                    <select onchange="updateMessage('${m.id}', 'from', this.value)" class="bg-slate-50 border border-slate-200 rounded px-2 py-1.5 text-xs focus:outline-none w-28">
+                        ${seqData.actors.map(a => `<option value="${a}" ${a === m.from ? 'selected' : ''}>${a}</option>`).join('')}
+                    </select>
+                    <select onchange="updateMessage('${m.id}', 'arrow', this.value)" class="bg-slate-50 border border-slate-200 rounded px-2 py-1.5 text-xs focus:outline-none w-24 font-mono">
+                        <option value="->>" ${m.arrow === '->>' ? 'selected' : ''}>->&gt; 実線</option>
+                        <option value="-->>" ${m.arrow === '-->>' ? 'selected' : ''}>--&gt;&gt; 点線</option>
+                        <option value="-" ${m.arrow === '-' ? 'selected' : ''}>- 矢印なし</option>
+                        <option value="-x" ${m.arrow === '-x' ? 'selected' : ''}>-x 非同期</option>
+                    </select>
+                    <select onchange="updateMessage('${m.id}', 'to', this.value)" class="bg-slate-50 border border-slate-200 rounded px-2 py-1.5 text-xs focus:outline-none w-28">
+                        ${seqData.actors.map(a => `<option value="${a}" ${a === m.to ? 'selected' : ''}>${a}</option>`).join('')}
+                    </select>
+                    <input type="text" value="${m.text}" oninput="updateMessage('${m.id}', 'text', this.value)" placeholder="メッセージ内容" class="bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 flex-1">
+                    <button onclick="removeMessage('${m.id}')" class="text-slate-400 hover:text-rose-600 p-1">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        async function renderPreviewAndCode() {
+            const code = generateMermaidCode();
+            document.getElementById('raw-code-output').textContent = code;
+
+            const previewEl = document.getElementById('mermaid-preview');
+            try {
+                const uniqueId = 'mermaid-' + Math.random().toString(36).substring(2, 9);
+                const { svg } = await mermaid.render(uniqueId, code);
+                previewEl.innerHTML = svg;
+            } catch (err) {
+                console.error(err);
+                previewEl.innerHTML = `<div class="text-xs text-rose-500 p-4 text-center"><i class="fa-solid fa-triangle-exclamation mb-1 text-base"></i><br>構文エラーまたは描画中...</div>`;
+            }
+        }
+
+        // --- UTILITIES ---
+        function copyCode() {
+            const code = generateMermaidCode();
+            const textarea = document.createElement('textarea');
+            textarea.value = code;
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast('クリップボードにコピーしました！');
+            } catch (err) {
+                showToast('コピーに失敗しました');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function downloadCode() {
+            const code = generateMermaidCode();
+            const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = currentMode === 'er' ? 'er-diagram.mmd' : 'sequence-diagram.mmd';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('ファイルをダウンロードしました');
+        }
+
+        function resetAllData() {
+            if (confirm('データを初期化しますか？')) {
+                if (currentMode === 'er') {
+                    erData = { tables: [], relations: [] };
+                } else {
+                    seqData = { actors: ['User', 'System'], messages: [] };
+                }
+                renderAll();
+                showToast('リセットしました');
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2500);
+        }
+
+        // Initial Load
+        window.onload = function() {
+            renderAll();
+        };
+    </script>
+</body>
+</html>

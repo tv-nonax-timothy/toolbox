@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windrose ServerDescription.json エディタ</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 12px;
+            color: #2c3e50;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        .back-link:hover {
+            color: #3498db;
+            text-decoration: underline;
+        }
+        h1 {
+            font-size: 1.5rem;
+            color: #16a085;
+        }
+        h2 {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            border-bottom: 2px solid #bdc3c7;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        textarea {
+            width: 100%;
+            height: 120px;
+            font-family: monospace;
+            padding: 8px;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #1abc9c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #16a085;
+        }
+        .file-input-container {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #eef2f3;
+            border-radius: 4px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .card {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .card label {
+            display: block;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 3px;
+            word-break: break-all;
+            color: #2c3e50;
+        }
+        .card .range-hint {
+            font-size: 0.75rem;
+            color: #e67e22;
+            margin-bottom: 6px;
+            display: block;
+        }
+        .card input, .card select {
+            width: 100%;
+            padding: 6px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .section {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <a href="index.html" class="back-link">← 道具箱トップへ戻る</a>
+    <h1>Windrose ServerDescription.json エディタ</h1>
+
+    <div class="section">
+        <h3>1. JSONテキストの読み込み</h3>
+        <div class="file-input-container">
+            <label for="localFile" style="cursor: pointer; font-weight: bold; color: #2c3e50;">📂 ローカルからファイルを選択 (ServerDescription.json)</label><br>
+            <input type="file" id="localFile" accept=".json,.txt" onchange="loadLocalFile(event)" style="margin-top: 8px;">
+        </div>
+        <p style="font-size: 0.85rem; color: #666; margin-top: 0;">または、下のテキストボックスに直接JSONを貼り付けてください。</p>
+        <textarea id="inputText" placeholder='[&#10;  {&#10;    "Version": 1,&#10;    ...&#10;  }&#10;]'></textarea>
+        <button onclick="parseSettings()">GUIを展開する</button>
+    </div>
+
+    <div class="section">
+        <h3>2. 項目ごとの編集</h3>
+        <div id="editorContainer">
+            <p style="color: #7f8c8d;">ファイルを読み込むか、JSONを貼り付けて「GUIを展開する」を押してください。</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>3. 編集後のJSONを取得</h3>
+        <button onclick="generateSettings()" style="background-color: #2ecc71;">JSONを更新・生成</button>
+        <textarea id="outputText" placeholder="ここに編集結果が反映されます..." readonly></textarea>
+        <button onclick="copyToClipboard()" style="background-color: #e67e22;">クリップボードにコピー</button>
+    </div>
+
+<script>
+// ServerDescription.json 向け項目の日本語名と範囲
+const settingMeta = {
+    Version: { name: "設定バージョン", range: "数値" },
+    DeploymentId: { name: "デプロイメントID", range: "文字列" },
+    PersistentServerId: { name: "永続サーバーID", range: "自動生成ID" },
+    InviteCode: { name: "招待コード", range: "文字列" },
+    IsPasswordProtected: { name: "パスワード保護有効", range: "True (true) / False (false)" },
+    Password: { name: "サーバーパスワード", range: "任意の文字列" },
+    ServerName: { name: "サーバー名", range: "任意の文字列" },
+    WorldIslandId: { name: "ワールド・島 ID", range: "文字列" },
+    MaxPlayerCount: { name: "最大プレイヤー数", range: "1 - 32" },
+    UserSelectedRegion: { name: "ユーザー選択リージョン", range: "文字列" },
+    P2pProxyAddress: { name: "P2PプロキシIPアドレス", range: "IPアドレス" },
+    UseDirectConnection: { name: "直接接続(ダイレクトコネクト)使用", range: "true / false" },
+    DirectConnectionServerAddress: { name: "直接接続用サーバーアドレス", range: "IPまたはドメイン" },
+    DirectConnectionServerPort: { name: "直接接続用サーバーポート", range: "数値 (例: -1 またはポート番号)" },
+    DirectConnectionProxyAddress: { name: "直接接続プロキシアドレス", range: "IPアドレス" }
+};
+
+let jsonData = null;
+
+function loadLocalFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        document.getElementById('inputText').value = e.target.result;
+        parseSettings();
+    };
+    reader.readAsText(file, 'UTF-8');
+}
+
+function parseSettings() {
+    const rawText = document.getElementById('inputText').value.trim();
+    if (!rawText) {
+        alert('テキストが空です。JSONを入力またはファイルを読み込んでください。');
+        return;
+    }
+
+    try {
+        jsonData = JSON.parse(rawText);
+    } catch (e) {
+        alert('JSONの構文エラーです。正しいJSON形式か確認してください。\nエラー: ' + e.message);
+        return;
+    }
+
+    renderEditor();
+    generateSettings();
+}
+
+function renderEditor() {
+    const container = document.getElementById('editorContainer');
+    container.innerHTML = '';
+
+    // ルートが配列かオブジェクトかに応じて処理
+    let targets = Array.isArray(jsonData) ? jsonData : [jsonData];
+
+    targets.forEach((item, targetIdx) => {
+        if (typeof item === 'object' && item !== null) {
+            buildObjectGroup(item, container, `ルート[${targetIdx}]`);
+        }
+    });
+}
+
+function buildObjectGroup(obj, container, groupTitle) {
+    const h2 = document.createElement('h2');
+    h2.innerText = groupTitle;
+    container.appendChild(h2);
+
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    container.appendChild(grid);
+
+    for (let [key, val] of Object.entries(obj)) {
+        // もし値がさらにネストされたオブジェクト（入れ子）の場合
+        if (typeof val === 'object' && val !== null && !Array.isArray(val)) {
+            buildObjectGroup(val, container, `${groupTitle} ＞ ${key}`);
+            continue;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'card';
+
+        const meta = settingMeta[key] || { name: key, range: "設定値" };
+
+        const label = document.createElement('label');
+        label.innerHTML = `${key} <span style="color: #16a085; font-weight: normal;">(${meta.name})</span>`;
+        card.appendChild(label);
+
+        const hint = document.createElement('span');
+        hint.className = 'range-hint';
+        hint.innerText = `推奨・範囲: ${meta.range}`;
+        card.appendChild(hint);
+
+        let input;
+        // boolean (true/false) の場合はセレクトボックスにする
+        if (typeof val === 'boolean') {
+            input = document.createElement('select');
+            [true, false].forEach(opt => {
+                let option = document.createElement('option');
+                option.value = opt;
+                option.text = opt ? "true" : "false";
+                if (opt === val) option.selected = true;
+                input.appendChild(option);
+            });
+        } else {
+            input = document.createElement('input');
+            input.type = 'text';
+            input.value = val;
+        }
+
+        // 入力変更時のバインド
+        input.oninput = (e) => {
+            updateValue(obj, key, e.target.value, typeof val);
+        };
+        input.onchange = (e) => {
+            updateValue(obj, key, e.target.value, typeof val);
+        };
+
+        card.appendChild(input);
+        grid.appendChild(card);
+    }
+}
+
+function updateValue(obj, key, newVal, originalType) {
+    if (originalType === 'boolean') {
+        obj[key] = (newVal === 'true');
+    } else if (originalType === 'number') {
+        obj[key] = Number(newVal);
+    } else {
+        obj[key] = newVal;
+    }
+    generateSettings();
+}
+
+function generateSettings() {
+    if (!jsonData) return;
+    document.getElementById('outputText').value = JSON.stringify(jsonData, null, 4);
+}
+
+function copyToClipboard() {
+    const outputText = document.getElementById('outputText');
+    if (!outputText.value) {
+        alert('コピーするテキストがありません。');
+        return;
+    }
+    outputText.select();
+    navigator.clipboard.writeText(outputText.value).then(() => {
+        alert('クリップボードにコピーしました！');
+    }).catch(err => {
+        alert('コピーに失敗しました');
+    });
+}
+</script>
+
+</body>
+</html>

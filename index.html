@@ -59,6 +59,29 @@
         .glow {
             box-shadow: 0 10px 30px -10px rgba(34, 197, 94, 0.3);
         }
+        /* Keep category ordering stable when Tailwind CDN omits larger order utilities. */
+        [class~="order-1"] { order: 1 !important; }
+        [class~="order-2"] { order: 2 !important; }
+        [class~="order-3"] { order: 3 !important; }
+        [class~="order-4"] { order: 4 !important; }
+        [class~="order-5"] { order: 5 !important; }
+        [class~="order-6"] { order: 6 !important; }
+        [class~="order-7"] { order: 7 !important; }
+        [class~="order-8"] { order: 8 !important; }
+        [class~="order-9"] { order: 9 !important; }
+        [class~="order-10"] { order: 10 !important; }
+        [class~="order-11"] { order: 11 !important; }
+        [class~="order-12"] { order: 12 !important; }
+        [class~="order-13"] { order: 13 !important; }
+        [class~="order-14"] { order: 14 !important; }
+        [class~="order-15"] { order: 15 !important; }
+        [class~="order-16"] { order: 16 !important; }
+        [class~="order-17"] { order: 17 !important; }
+        [class~="order-18"] { order: 18 !important; }
+        [class~="order-20"] { order: 20 !important; }
+        [class~="order-21"] { order: 21 !important; }
+        [class~="order-22"] { order: 22 !important; }
+        [class~="order-23"] { order: 23 !important; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col selection:bg-brand-500 selection:text-white">
@@ -128,71 +151,12 @@
                 <p class="text-sm text-slate-500 mt-1 font-medium">のなっくすが作成した公開中のWEBアプリケーション</p>
             </div>
             <div>
-                <span class="bg-brand-50 text-brand-700 border border-brand-200 text-xs font-bold px-3.5 py-1.5 rounded-xl shadow-sm">公開中: 11 ツール</span>
+                <span class="bg-brand-50 text-brand-700 border border-brand-200 text-xs font-bold px-3.5 py-1.5 rounded-xl shadow-sm">公開中: 12 ツール</span>
             </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
 
-            <div class="col-span-full order-10 flex items-center gap-3 pt-2">
-                <i class="fa-solid fa-gamepad text-brand-600"></i>
-                <h4 class="text-lg font-extrabold text-slate-800">ゲーム・サーバー管理</h4>
-                <span class="h-px flex-1 bg-slate-200"></span>
-            </div>
-            
-            <!-- Tool 1: PAL Editor -->
-            <div class="tool-card order-11 bg-white rounded-3xl p-6 sm:p-8 border-2 border-brand-500 shadow-xl shadow-brand-500/10 relative flex flex-col justify-between overflow-hidden">
-                <div class="absolute top-0 right-0 bg-brand-500 text-white text-xs font-extrabold px-4 py-1.5 rounded-bl-2xl shadow-sm">
-                    1個目の道具
-                </div>
-                <div>
-                    <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-sm border border-brand-100">
-                        <i class="fa-solid fa-gamepad"></i>
-                    </div>
-                    <h4 class="text-2xl font-bold text-slate-900 mb-3">PAL Editor</h4>
-                    <p class="text-slate-600 text-sm sm:text-base leading-relaxed mb-6 font-medium">
-                        パルワールド（Palworld）のサーバー設定ファイルである「PalWorldSettings.ini」をGUIで直感的に編集したくて作った欲求解消ツール。面倒な手動のファイル書き換えや設定ミスから解放されます！
-                    </p>
-                </div>
-                <div>
-                    <div class="flex flex-wrap gap-2 mb-8">
-                        <span class="bg-slate-100 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-xl">パルワールド</span>
-                        <span class="bg-slate-100 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-xl">サーバー設定</span>
-                        <span class="bg-slate-100 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-xl">GUIエディタ</span>
-                    </div>
-                    <a href="pal_editor.html" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 px-6 rounded-2xl transition-all shadow-md shadow-brand-600/30 flex items-center justify-center space-x-2">
-                        <span>PAL Editor を起動する</span>
-                        <i class="fa-solid fa-arrow-right text-xs"></i>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Tool 2: Conan Exiles Editor -->
-            <div class="tool-card order-12 bg-white rounded-3xl p-6 sm:p-8 border-2 border-brand-500 shadow-xl shadow-brand-500/10 relative flex flex-col justify-between overflow-hidden">
-                <div class="absolute top-0 right-0 bg-purple-600 text-white text-xs font-extrabold px-4 py-1.5 rounded-bl-2xl shadow-sm">
-                    🚀 新着！2個目の道具
-                </div>
-                <div>
-                    <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-sm border border-brand-100">
-                        <i class="fa-solid fa-dungeon"></i>
-                    </div>
-                    <h4 class="text-2xl font-bold text-slate-900 mb-3">Conan Exiles Editor</h4>
-                    <p class="text-slate-600 text-sm sm:text-base leading-relaxed mb-6 font-medium">
-                        Conan Exilesのサーバー設定ファイルである「ServerSettings.ini」をGUIで直感的に編集できる設定ツール。複雑な設定項目も手軽に確認・変更できます！
-                    </p>
-                </div>
-                <div>
-                    <div class="flex flex-wrap gap-2 mb-8">
-                        <span class="bg-slate-100 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-xl">Conan Exiles</span>
-                        <span class="bg-slate-100 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-xl">サーバー設定</span>
-                        <span class="bg-slate-100 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-xl">GUIエディタ</span>
-                    </div>
-                    <a href="Conan_Editor.html" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 px-6 rounded-2xl transition-all shadow-md shadow-brand-600/30 flex items-center justify-center space-x-2">
-                        <span>Conan Editor を起動する</span>
-                        <i class="fa-solid fa-arrow-right text-xs"></i>
-                    </a>
-                </div>
-            </div>
 
             <div class="col-span-full order-1 flex items-center gap-3 pt-4">
                 <i class="fa-solid fa-file-lines text-sky-600"></i>
@@ -228,7 +192,7 @@
             </div>
 
             <!-- Tool 2: JSON / YAML / INI Converter -->
-            <div class="tool-card order-2 bg-white rounded-3xl p-6 sm:p-8 border-2 border-brand-500 shadow-xl shadow-brand-500/10 relative flex flex-col justify-between overflow-hidden">
+            <div class="tool-card order-3 bg-white rounded-3xl p-6 sm:p-8 border-2 border-brand-500 shadow-xl shadow-brand-500/10 relative flex flex-col justify-between overflow-hidden">
                 <div class="absolute top-0 right-0 bg-sky-600 text-white text-xs font-extrabold px-4 py-1.5 rounded-bl-2xl shadow-sm">
                     2個目の道具
                 </div>
@@ -255,7 +219,7 @@
             </div>
 
             <!-- Tool 3: Excel / CSV to Markdown Converter -->
-            <div class="tool-card order-2 bg-white rounded-3xl p-6 sm:p-8 border-2 border-brand-500 shadow-xl shadow-brand-500/10 relative flex flex-col justify-between overflow-hidden">
+            <div class="tool-card order-4 bg-white rounded-3xl p-6 sm:p-8 border-2 border-brand-500 shadow-xl shadow-brand-500/10 relative flex flex-col justify-between overflow-hidden">
                 <div class="absolute top-0 right-0 bg-amber-500 text-white text-xs font-extrabold px-4 py-1.5 rounded-bl-2xl shadow-sm">
                     3個目の道具
                 </div>
@@ -282,7 +246,7 @@
             </div>
 
             <!-- Tool 4: Excel to PDF / Image Converter -->
-            <div class="tool-card order-2 bg-white rounded-3xl p-6 sm:p-8 border-2 border-brand-500 shadow-xl shadow-brand-500/10 relative flex flex-col justify-between overflow-hidden">
+            <div class="tool-card order-5 bg-white rounded-3xl p-6 sm:p-8 border-2 border-brand-500 shadow-xl shadow-brand-500/10 relative flex flex-col justify-between overflow-hidden">
                 <div class="absolute top-0 right-0 bg-rose-500 text-white text-xs font-extrabold px-4 py-1.5 rounded-bl-2xl shadow-sm">
                     🚀 新着！4個目の道具
                 </div>
@@ -309,7 +273,7 @@
             </div>
 
             <!-- Tool 5: URL to Markdown Converter -->
-            <div class="tool-card order-2 bg-white rounded-3xl p-6 sm:p-8 border-2 border-brand-500 shadow-xl shadow-brand-500/10 relative flex flex-col justify-between overflow-hidden">
+            <div class="tool-card order-6 bg-white rounded-3xl p-6 sm:p-8 border-2 border-brand-500 shadow-xl shadow-brand-500/10 relative flex flex-col justify-between overflow-hidden">
                 <div class="absolute top-0 right-0 bg-emerald-600 text-white text-xs font-extrabold px-4 py-1.5 rounded-bl-2xl shadow-sm">
                     🚀 新着！5個目の道具
                 </div>
@@ -336,7 +300,7 @@
             </div>
 
             <!-- Tool 6: Mermaid ER Diagram Designer -->
-            <div class="tool-card order-2 bg-white rounded-3xl p-6 sm:p-8 border-2 border-brand-500 shadow-xl shadow-brand-500/10 relative flex flex-col justify-between overflow-hidden">
+            <div class="tool-card order-7 bg-white rounded-3xl p-6 sm:p-8 border-2 border-brand-500 shadow-xl shadow-brand-500/10 relative flex flex-col justify-between overflow-hidden">
                 <div class="absolute top-0 right-0 bg-blue-600 text-white text-xs font-extrabold px-4 py-1.5 rounded-bl-2xl shadow-sm">6個目の道具</div>
                 <div>
                     <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-sm border border-brand-100"><i class="fa-solid fa-database"></i></div>
@@ -350,7 +314,7 @@
             </div>
 
             <!-- Tool 7: Mermaid Sequence Diagram Designer -->
-            <div class="tool-card order-2 bg-white rounded-3xl p-6 sm:p-8 border-2 border-brand-500 shadow-xl shadow-brand-500/10 relative flex flex-col justify-between overflow-hidden">
+            <div class="tool-card order-8 bg-white rounded-3xl p-6 sm:p-8 border-2 border-brand-500 shadow-xl shadow-brand-500/10 relative flex flex-col justify-between overflow-hidden">
                 <div class="absolute top-0 right-0 bg-sky-600 text-white text-xs font-extrabold px-4 py-1.5 rounded-bl-2xl shadow-sm">7個目の道具</div>
                 <div>
                     <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-sm border border-brand-100"><i class="fa-solid fa-right-left"></i></div>
@@ -364,7 +328,7 @@
             </div>
 
             <!-- Tool 8: Mermaid Flowchart Designer -->
-            <div class="tool-card order-2 bg-white rounded-3xl p-6 sm:p-8 border-2 border-brand-500 shadow-xl shadow-brand-500/10 relative flex flex-col justify-between overflow-hidden">
+            <div class="tool-card order-9 bg-white rounded-3xl p-6 sm:p-8 border-2 border-brand-500 shadow-xl shadow-brand-500/10 relative flex flex-col justify-between overflow-hidden">
                 <div class="absolute top-0 right-0 bg-emerald-600 text-white text-xs font-extrabold px-4 py-1.5 rounded-bl-2xl shadow-sm">8個目の道具</div>
                 <div>
                     <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-sm border border-brand-100"><i class="fa-solid fa-diagram-project"></i></div>
@@ -377,13 +341,13 @@
                 </div>
             </div>
 
-            <div class="col-span-full order-3 flex items-center gap-3 pt-4">
+            <div class="col-span-full order-10 flex items-center gap-3 pt-4">
                 <i class="fa-solid fa-utensils text-orange-600"></i>
                 <h4 class="text-lg font-extrabold text-slate-800">生活・日常支援</h4>
                 <span class="h-px flex-1 bg-slate-200"></span>
             </div>
 
-            <div class="tool-card order-4 bg-white rounded-3xl p-6 sm:p-8 border-2 border-orange-300 shadow-xl shadow-orange-500/10 relative flex flex-col justify-between overflow-hidden">
+            <div class="tool-card order-11 bg-white rounded-3xl p-6 sm:p-8 border-2 border-orange-300 shadow-xl shadow-orange-500/10 relative flex flex-col justify-between overflow-hidden">
                 <div class="absolute top-0 right-0 bg-orange-500 text-white text-xs font-extrabold px-4 py-1.5 rounded-bl-2xl shadow-sm">新着！1個目の道具</div>
                 <div>
                     <div class="w-16 h-16 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-sm border border-orange-100"><i class="fa-solid fa-utensils"></i></div>
@@ -391,6 +355,93 @@
                     <p class="text-slate-600 text-sm sm:text-base leading-relaxed mb-6 font-medium">性別や年齢層、アレルギー・苦手な食材を設定して、今日の晩御飯候補を楽しく決められるジェネレータ。迷ったときの献立選びをサポートします！</p>
                 </div>
                 <a href="tonights_dinner.html" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3.5 px-6 rounded-2xl transition-all shadow-md shadow-orange-500/30 flex items-center justify-center space-x-2"><span>晩御飯を決める</span><i class="fa-solid fa-arrow-right text-xs"></i></a>
+            </div>
+
+            <div class="col-span-full order-20 flex items-center gap-3 pt-2">
+                <i class="fa-solid fa-gamepad text-brand-600"></i>
+                <h4 class="text-lg font-extrabold text-slate-800">ゲーム・サーバー管理</h4>
+                <span class="h-px flex-1 bg-slate-200"></span>
+            </div>
+            
+            <!-- Tool 1: PAL Editor -->
+            <div class="tool-card order-21 bg-white rounded-3xl p-6 sm:p-8 border-2 border-brand-500 shadow-xl shadow-brand-500/10 relative flex flex-col justify-between overflow-hidden">
+                <div class="absolute top-0 right-0 bg-brand-500 text-white text-xs font-extrabold px-4 py-1.5 rounded-bl-2xl shadow-sm">
+                    1個目の道具
+                </div>
+                <div>
+                    <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-sm border border-brand-100">
+                        <i class="fa-solid fa-gamepad"></i>
+                    </div>
+                    <h4 class="text-2xl font-bold text-slate-900 mb-3">PAL Editor</h4>
+                    <p class="text-slate-600 text-sm sm:text-base leading-relaxed mb-6 font-medium">
+                        パルワールド（Palworld）のサーバー設定ファイルである「PalWorldSettings.ini」をGUIで直感的に編集したくて作った欲求解消ツール。面倒な手動のファイル書き換えや設定ミスから解放されます！
+                    </p>
+                </div>
+                <div>
+                    <div class="flex flex-wrap gap-2 mb-8">
+                        <span class="bg-slate-100 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-xl">パルワールド</span>
+                        <span class="bg-slate-100 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-xl">サーバー設定</span>
+                        <span class="bg-slate-100 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-xl">GUIエディタ</span>
+                    </div>
+                    <a href="pal_editor.html" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 px-6 rounded-2xl transition-all shadow-md shadow-brand-600/30 flex items-center justify-center space-x-2">
+                        <span>PAL Editor を起動する</span>
+                        <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Tool 2: Conan Exiles Editor -->
+            <div class="tool-card order-22 bg-white rounded-3xl p-6 sm:p-8 border-2 border-brand-500 shadow-xl shadow-brand-500/10 relative flex flex-col justify-between overflow-hidden">
+                <div class="absolute top-0 right-0 bg-purple-600 text-white text-xs font-extrabold px-4 py-1.5 rounded-bl-2xl shadow-sm">
+                    🚀 新着！2個目の道具
+                </div>
+                <div>
+                    <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-sm border border-brand-100">
+                        <i class="fa-solid fa-dungeon"></i>
+                    </div>
+                    <h4 class="text-2xl font-bold text-slate-900 mb-3">Conan Exiles Editor</h4>
+                    <p class="text-slate-600 text-sm sm:text-base leading-relaxed mb-6 font-medium">
+                        Conan Exilesのサーバー設定ファイルである「ServerSettings.ini」をGUIで直感的に編集できる設定ツール。複雑な設定項目も手軽に確認・変更できます！
+                    </p>
+                </div>
+                <div>
+                    <div class="flex flex-wrap gap-2 mb-8">
+                        <span class="bg-slate-100 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-xl">Conan Exiles</span>
+                        <span class="bg-slate-100 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-xl">サーバー設定</span>
+                        <span class="bg-slate-100 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-xl">GUIエディタ</span>
+                    </div>
+                    <a href="Conan_Editor.html" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 px-6 rounded-2xl transition-all shadow-md shadow-brand-600/30 flex items-center justify-center space-x-2">
+                        <span>Conan Editor を起動する</span>
+                        <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Tool 3: Windrose ServerDescription JSON Editor -->
+            <div class="tool-card order-23 bg-white rounded-3xl p-6 sm:p-8 border-2 border-brand-500 shadow-xl shadow-brand-500/10 relative flex flex-col justify-between overflow-hidden">
+                <div class="absolute top-0 right-0 bg-teal-600 text-white text-xs font-extrabold px-4 py-1.5 rounded-bl-2xl shadow-sm">
+                    3個目の道具
+                </div>
+                <div>
+                    <div class="w-16 h-16 bg-teal-50 text-teal-600 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-sm border border-teal-100">
+                        <i class="fa-solid fa-file-code"></i>
+                    </div>
+                    <h4 class="text-2xl font-bold text-slate-900 mb-3">Windrose ServerDescription.json エディタ</h4>
+                    <p class="text-slate-600 text-sm sm:text-base leading-relaxed mb-6 font-medium">
+                        WindroseのServerDescription.jsonを読み込み、項目ごとのGUIで設定を編集できるツール。JSONを直接貼り付けての編集や、編集後のJSON生成・コピーにも対応しています！
+                    </p>
+                </div>
+                <div>
+                    <div class="flex flex-wrap gap-2 mb-8">
+                        <span class="bg-slate-100 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-xl">Windrose</span>
+                        <span class="bg-slate-100 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-xl">JSON</span>
+                        <span class="bg-slate-100 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-xl">サーバー設定</span>
+                    </div>
+                    <a href="windrose_json_editor.html" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 px-6 rounded-2xl transition-all shadow-md shadow-brand-600/30 flex items-center justify-center space-x-2">
+                        <span>JSONエディタを開く</span>
+                        <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </a>
+                </div>
             </div>
 
         </div>

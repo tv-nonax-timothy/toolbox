@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windrose GameUserSettings.ini エディタ</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        h1 {
+            font-size: 1.5rem;
+            color: #2980b9;
+        }
+        h2 {
+            font-size: 1.2rem;
+            color: #34495e;
+            border-bottom: 2px solid #bdc3c7;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            font-family: monospace;
+            padding: 8px;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .file-input-container {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #eef2f3;
+            border-radius: 4px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .card {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .card label {
+            display: block;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 3px;
+            word-break: break-all;
+            color: #2c3e50;
+        }
+        .card .range-hint {
+            font-size: 0.75rem;
+            color: #e67e22;
+            margin-bottom: 6px;
+            display: block;
+        }
+        .card input, .card select {
+            width: 100%;
+            padding: 6px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .section {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Windrose GameUserSettings.ini エディタ</h1>
+
+    <div class="section">
+        <h3>1. 設定テキストの読み込み</h3>
+        <div class="file-input-container">
+            <label for="localFile" style="cursor: pointer; font-weight: bold; color: #2c3e50;">📂 ローカルからファイルを選択 (GameUserSettings.ini)</label><br>
+            <input type="file" id="localFile" accept=".ini,.txt" onchange="loadLocalFile(event)" style="margin-top: 8px;">
+        </div>
+        <p style="font-size: 0.85rem; color: #666; margin-top: 0;">または、下のテキストボックスに直接貼り付けてください。</p>
+        <textarea id="inputText" placeholder="[;METADATA=(...)]&#10;[/Script/R5.R5SettingsLocal]&#10;..."></textarea>
+        <button onclick="parseSettings()">GUIを展開する</button>
+    </div>
+
+    <div class="section">
+        <h3>2. 項目ごとの編集</h3>
+        <div id="editorContainer">
+            <p style="color: #7f8c8d;">ファイルを読み込むか、テキストを貼り付けて「GUIを展開する」を押してください。</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>3. 編集後のテキストを取得</h3>
+        <button onclick="generateSettings()" style="background-color: #2ecc71;">テキストを更新・生成</button>
+        <textarea id="outputText" placeholder="ここに編集結果が反映されます..." readonly></textarea>
+        <button onclick="copyToClipboard()" style="background-color: #e67e22;">クリップボードにコピー</button>
+    </div>
+
+<script>
+// Windrose / Unreal Engine 設定項目の日本語名と範囲
+const settingMeta = {
+    DisplayGamma: { name: "画面の明るさ (ガンマ)", range: "1.0 - 3.0" },
+    MotionBlurQuality: { name: "モーションブラー品質", range: "0 - 4" },
+    CurrentFOV: { name: "視野角 (FOV)", range: "数値" },
+    UpscalerType: { name: "アップスケーラー種類", range: "Off / TSR / DLSS / FSR など" },
+    UpscalerQuality: { name: "アップスケーラー品質", range: "Off / Performance / Balanced / Quality" },
+    FrameGeneratorType: { name: "フレームジェネレーター種類", range: "Off / DLSSG など" },
+    FrameGeneratorMode: { name: "フレームジェネレーターモード", range: "Off / On / On2x" },
+    ReflexMode: { name: "NVIDIA Reflex モード", range: "Off / On / Boost" },
+    CustomResolutionScale: { name: "3D描画解像度スケール", range: "0.1 - 1.0" },
+    OverallVolume: { name: "全体音量", range: "0.0 - 1.0" },
+    MusicVolume: { name: "音楽音量", range: "0.0 - 1.0" },
+    SoundFXVolume: { name: "効果音 (SFX) 音量", range: "0.0 - 1.0" },
+    UIVolume: { name: "UI音量", range: "0.0 - 1.0" },
+    AmbientVolume: { name: "環境音音量", range: "0.0 - 1.0" },
+    DialogueVolume: { name: "ボイス・会話音量", range: "0.0 - 1.0" },
+    CharacterBloodWound: { name: "キャラクターの血・傷表現", range: "0.0 - 1.0" },
+    CharacterDirt: { name: "キャラクターの汚れ表現", range: "0.0 - 1.0" },
+    LensDirtEffect: { name: "レンズ汚れエフェクト", range: "0.0 - 1.0" },
+    ResolutionSizeX: { name: "画面解像度 横 (Width)", range: "数値 (例: 1920)" },
+    ResolutionSizeY: { name: "画面解像度 縦 (Height)", range: "数値 (例: 1080)" },
+    FullscreenMode: { name: "画面モード", range: "0:フルスクリーン / 1:ウィンドウ付 / 2:ウィンドウ" },
+    bUseHDRDisplayOutput: { name: "HDR出力有効", range: "True / False" },
+    HDRDisplayOutputNits: { name: "HDR輝度 (Nits)", range: "数値 (例: 1000)" },
+    
+    // ScalabilityGroups
+    "sg.ResolutionQuality": { name: "解像度品質グループ", range: "0 - 100" },
+    "sg.ViewDistanceQuality": { name: "描画距離品質", range: "0 - 3" },
+    "sg.AntiAliasingQuality": { name: "アンチエイリアス品質", range: "0 - 3" },
+    "sg.ShadowQuality": { name: "影品質", range: "0 - 3" },
+    "sg.GlobalIlluminationQuality": { name: "全体イルミネーション(GI)品質", range: "0 - 3" },
+    "sg.ReflectionQuality": { name: "反射品質", range: "0 - 3" },
+    "sg.PostProcessQuality": { name: "ポストプロセス品質", range: "0 - 3" },
+    "sg.TextureQuality": { name: "テクスチャ品質", range: "0 - 3" },
+    "sg.EffectsQuality": { name: "エフェクト品質", range: "0 - 3" },
+    "sg.FoliageQuality": { name: "植物・草木品質", range: "0 - 3" },
+    "sg.ShadingQuality": { name: "シェーディング品質", range: "0 - 3" },
+    "sg.LandscapeQuality": { name: "地形品質", range: "0 - 3" }
+};
+
+let rawLines = [];
+
+function loadLocalFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        document.getElementById('inputText').value = e.target.result;
+        parseSettings();
+    };
+    reader.readAsText(file, 'UTF-8');
+}
+
+function parseSettings() {
+    const rawText = document.getElementById('inputText').value.trim();
+    if (!rawText) {
+        alert('テキストが空です。設定テキストを入力またはファイルを読み込んでください。');
+        return;
+    }
+
+    rawLines = rawText.split(/\r?\n/);
+    const container = document.getElementById('editorContainer');
+    container.innerHTML = '';
+
+    let currentSectionName = "基本設定";
+    let currentGrid = null;
+
+    rawLines.forEach((line, index) => {
+        let trimmed = line.trim();
+
+        // セクションヘッダーの検知
+        if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+            currentSectionName = trimmed.slice(1, -1);
+            
+            const h2 = document.createElement('h2');
+            h2.innerText = currentSectionName;
+            container.appendChild(h2);
+
+            currentGrid = document.createElement('div');
+            currentGrid.className = 'grid';
+            container.appendChild(currentGrid);
+            return;
+        }
+
+        // 空行、コメント行、または代入式でない行はスキップ
+        if (!trimmed || trimmed.startsWith(';') || !trimmed.includes('=')) {
+            return;
+        }
+
+        // セクションヘッダーが来る前に項目があった場合のフォールバック
+        if (!currentGrid) {
+            const h2 = document.createElement('h2');
+            h2.innerText = "設定項目";
+            container.appendChild(h2);
+
+            currentGrid = document.createElement('div');
+            currentGrid.className = 'grid';
+            container.appendChild(currentGrid);
+        }
+
+        const eqIdx = trimmed.indexOf('=');
+        const key = trimmed.substring(0, eqIdx).trim();
+        const val = trimmed.substring(eqIdx + 1).trim();
+
+        const card = document.createElement('div');
+        card.className = 'card';
+
+        const meta = settingMeta[key] || { name: key, range: "設定値" };
+
+        const label = document.createElement('label');
+        label.innerHTML = `${key} <span style="color: #2980b9; font-weight: normal;">(${meta.name})</span>`;
+        card.appendChild(label);
+
+        const hint = document.createElement('span');
+        hint.className = 'range-hint';
+        hint.innerText = `推奨・範囲: ${meta.range}`;
+        card.appendChild(hint);
+
+        let input;
+        if (val.toLowerCase() === 'true' || val.toLowerCase() === 'false') {
+            input = document.createElement('select');
+            ['True', 'False'].forEach(opt => {
+                let option = document.createElement('option');
+                option.value = opt;
+                option.text = opt;
+                if (opt.toLowerCase() === val.toLowerCase()) option.selected = true;
+                input.appendChild(option);
+            });
+        } else {
+            input = document.createElement('input');
+            input.type = 'text';
+            input.value = val;
+        }
+
+        input.dataset.lineIndex = index;
+        input.dataset.key = key;
+        input.oninput = (e) => {
+            updateLineValue(e.target.dataset.lineIndex, e.target.dataset.key, e.target.value);
+        };
+        input.onchange = (e) => {
+            updateLineValue(e.target.dataset.lineIndex, e.target.dataset.key, e.target.value);
+        };
+
+        card.appendChild(input);
+        currentGrid.appendChild(card);
+    });
+
+    generateSettings();
+}
+
+function updateLineValue(lineIndex, key, newVal) {
+    rawLines[lineIndex] = `${key}=${newVal}`;
+    generateSettings();
+}
+
+function generateSettings() {
+    if (rawLines.length === 0) return;
+    document.getElementById('outputText').value = rawLines.join('\n');
+}
+
+function copyToClipboard() {
+    const outputText = document.getElementById('outputText');
+    if (!outputText.value) {
+        alert('コピーするテキストがありません。');
+        return;
+    }
+    outputText.select();
+    navigator.clipboard.writeText(outputText.value).then(() => {
+        alert('クリップボードにコピーしました！');
+    }).catch(err => {
+        alert('コピーに失敗しました');
+    });
+}
+</script>
+
+</body>
+</html>

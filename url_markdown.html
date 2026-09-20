@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL指定 一括Markdown化ツール - のなっくすの道具箱</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1p:wght@400;500;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- JSZip for ZIP download -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- Turndown for HTML to Markdown conversion -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.1.2/turndown.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"M PLUS Rounded 1p"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'M PLUS Rounded 1p', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        /* Markdown Preview Styling */
+        .markdown-body h1 { font-size: 1.6rem; font-weight: bold; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.3rem; margin-top: 1rem; margin-bottom: 1rem; }
+        .markdown-body h2 { font-size: 1.3rem; font-weight: bold; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.2rem; margin-top: 1.2rem; margin-bottom: 0.8rem; }
+        .markdown-body h3 { font-size: 1.1rem; font-weight: bold; margin-top: 1rem; margin-bottom: 0.5rem; }
+        .markdown-body p { margin-bottom: 0.8rem; line-height: 1.7; }
+        .markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.8rem; }
+        .markdown-body ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.8rem; }
+        .markdown-body blockquote { border-left: 4px solid #22c55e; padding-left: 1rem; color: #64748b; margin-bottom: 0.8rem; background: #f0fdf4; padding-top: 0.5rem; padding-bottom: 0.5rem; border-radius: 0 0.5rem 0.5rem 0; }
+        .markdown-body code { background: #f1f5f9; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-size: 0.9em; font-family: 'JetBrains Mono', monospace; }
+        .markdown-body pre { background: #0f172a; color: #f8fafc; padding: 1rem; border-radius: 0.75rem; overflow-x: auto; margin-bottom: 1rem; }
+        .markdown-body table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+        .markdown-body th, .markdown-body td { border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem; text-align: left; }
+        .markdown-body th { background-color: #f1f5f9; font-weight: bold; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <a href="index.html" class="w-10 h-10 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+                <div class="flex items-center space-x-2">
+                    <div class="w-9 h-9 bg-brand-600 rounded-xl flex items-center justify-center text-white text-lg shadow-sm">
+                        <i class="fa-solid fa-globe"></i>
+                    </div>
+                    <h1 class="text-lg sm:text-xl font-extrabold text-slate-900">URL指定 一括Markdown化ツール</h1>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <span id="status-msg" class="text-xs text-slate-500 font-medium hidden sm:inline"><i class="fa-solid fa-check text-brand-500 mr-1"></i>準備完了</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-6">
+        
+        <!-- Left Pane: Settings & Controls -->
+        <div class="w-full lg:w-1/3 flex flex-col space-y-6">
+            
+            <!-- URL Input Box -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 flex flex-col space-y-4">
+                <h3 class="text-sm font-bold text-slate-800 flex items-center space-x-2">
+                    <i class="fa-solid fa-link text-brand-600"></i>
+                    <span>1. ターゲットURLの設定</span>
+                </h3>
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5">対象URL (社内/外部)</label>
+                    <input type="url" id="target-url" placeholder="https://example.com/docs/" class="w-full text-xs font-mono bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-3 text-slate-700 focus:outline-none focus:border-brand-500">
+                </div>
+
+                <!-- Crawl Mode -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5">取得範囲</label>
+                    <select id="crawl-scope" class="w-full text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-slate-700 focus:outline-none focus:border-brand-500">
+                        <option value="single">指定ページのみ (1ページ)</option>
+                        <option value="10">指定ページ ＋ 内部リンク先も一括取得 (最大10ページ)</option>
+                        <option value="25">指定ページ ＋ 内部リンク先も一括取得 (最大25ページ)</option>
+                        <option value="50">指定ページ ＋ 内部リンク先も一括取得 (最大50ページ)</option>
+                        <option value="100">指定ページ ＋ 内部リンク先も一括取得 (最大100ページ)</option>
+                    </select>
+                </div>
+
+                <!-- Noise Removal Option -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex items-center justify-between">
+                    <div>
+                        <span class="block text-xs font-bold text-slate-800">ノイズ除去を有効化</span>
+                        <span class="text-[10px] text-slate-500">ヘッダー、フッター、サイドバーを除去し本文のみ抽出</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="noise-removal" checked class="sr-only peer">
+                        <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600"></div>
+                    </label>
+                </div>
+
+                <!-- CORS / Fetch Notice for internal use -->
+                <div class="text-[11px] text-amber-600 bg-amber-50 p-3 rounded-xl border border-amber-200 flex items-start space-x-2">
+                    <i class="fa-solid fa-triangle-exclamation mt-0.5 shrink-0"></i>
+                    <span>社内サーバー等でCORS制限がある場合、CORSプロキシ経由または直接フェッチを試みます。</span>
+                </div>
+
+                <button onclick="startScraping()" id="btn-scrape" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 px-4 rounded-2xl text-xs sm:text-sm shadow-md shadow-brand-600/30 transition-all flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>Markdownへ一括変換開始</span>
+                </button>
+            </div>
+
+            <!-- Download Section -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 flex flex-col space-y-3">
+                <h3 class="text-sm font-bold text-slate-800 mb-1 flex items-center space-x-2">
+                    <i class="fa-solid fa-download text-sky-500"></i>
+                    <span>2. まとめてダウンロード</span>
+                </h3>
+                <button onclick="downloadZip()" id="btn-zip" disabled class="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold py-3 px-4 rounded-2xl text-xs sm:text-sm shadow-md transition-all flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-file-zipper"></i>
+                    <span>ZIPとして一括ダウンロード (.zip)</span>
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Right Pane: File List & Live Preview -->
+        <div class="w-full lg:w-2/3 flex flex-col lg:flex-row gap-6">
+            
+            <!-- File List Sidebar -->
+            <div class="w-full lg:w-1/3 bg-white rounded-3xl shadow-sm border border-slate-200 flex flex-col overflow-hidden h-[500px]">
+                <div class="bg-slate-50 px-5 py-3 border-b border-slate-200 flex items-center justify-between shrink-0">
+                    <span class="text-xs font-bold text-slate-700 flex items-center space-x-1.5">
+                        <i class="fa-solid fa-folder-open text-brand-600"></i>
+                        <span>生成されたファイル一覧</span>
+                    </span>
+                    <span id="file-count" class="text-xs font-bold text-slate-400">0 files</span>
+                </div>
+                <div id="file-list-container" class="flex-grow overflow-y-auto divide-y divide-slate-100">
+                    <div class="p-8 text-center text-slate-400 text-xs">
+                        まだ変換されたファイルはありません
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Pane -->
+            <div class="w-full lg:w-2/3 bg-white rounded-3xl shadow-sm border border-slate-200 flex flex-col overflow-hidden h-[500px]">
+                <div class="bg-slate-50 px-5 py-3 border-b border-slate-200 flex items-center justify-between shrink-0">
+                    <span id="preview-filename" class="text-xs font-bold text-slate-700 flex items-center space-x-1.5 truncate max-w-[250px]">
+                        <i class="fa-solid fa-eye text-sky-500"></i>
+                        <span>リアルタイムプレビュー</span>
+                    </span>
+                    <button onclick="copyCurrentMarkdown()" id="btn-copy" class="text-xs font-bold text-slate-500 hover:text-brand-600 transition-colors hidden">
+                        <i class="fa-regular fa-copy mr-1"></i>コピー
+                    </button>
+                </div>
+                <div id="preview-container" class="markdown-body flex-grow p-6 overflow-y-auto text-sm">
+                    <div class="text-center text-slate-400 py-20 text-xs">
+                        左側の一覧からファイルを選択するとプレビューが表示されます
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        let generatedFiles = {}; // filename -> markdown content
+        let currentSelectedFile = null;
+        const turndownService = new TurndownService();
+        const statusMsg = document.getElementById('status-msg');
+
+        // Configure turndown to clean up nicely
+        turndownService.remove(['script', 'style', 'nav', 'footer', 'header', 'aside']);
+
+        async function fetchHTML(url) {
+            // Try direct fetch first, if CORS fails or internal, fallback or try proxy
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return await response.text();
+            } catch (err) {
+                // Fallback using public CORS proxy for demonstration
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+                const response = await fetch(proxyUrl);
+                if (!response.ok) throw new Error('CORS or Network error.');
+                const data = await response.json();
+                return data.contents;
+            }
+        }
+
+        async function startScraping() {
+            const urlInput = document.getElementById('target-url').value.trim();
+            const scope = document.getElementById('crawl-scope').value;
+            const removeNoise = document.getElementById('noise-removal').checked;
+
+            if (!urlInput) {
+                alert('対象のURLを入力してください。');
+                return;
+            }
+
+            statusMsg.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-brand-500 mr-1"></i>ページを解析中...';
+            generatedFiles = {};
+
+            try {
+                // 1. Fetch root page
+                const htmlText = await fetchHTML(urlInput);
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlText, 'text/html');
+
+                let title = doc.querySelector('title') ? doc.querySelector('title').innerText : 'index';
+                let safeTitle = title.replace(/[\/\\?%*:|"<>]/g, '_').trim() || 'page';
+
+                // Process DOM for noise removal if enabled
+                if (removeNoise) {
+                    const noiseSelectors = ['header', 'footer', 'nav', 'aside', '.sidebar', '.menu', '.footer', '.header', '#comments'];
+                    noiseSelectors.forEach(sel => {
+                        doc.querySelectorAll(sel).forEach(el => el.remove());
+                    });
+                }
+
+                // Convert main body or article to markdown
+                const mainEl = doc.querySelector('article') || doc.querySelector('main') || doc.body;
+                const markdown = turndownService.turndown(mainEl.innerHTML);
+
+                generatedFiles[`${safeTitle}.md`] = `# ${title}\n\n> Source URL: ${urlInput}\n\n${markdown}`;
+
+                // 2. If links scope is selected, find inner links
+                if (scope !== 'single') {
+                    const maxPages = Number(scope);
+                    const links = Array.from(doc.querySelectorAll('a'))
+                        .map(a => a.href)
+                        .filter(href => href && href.startsWith('http') && !href.includes('#'))
+                        .filter((v, i, self) => self.indexOf(v) === i) // unique
+                        .slice(0, maxPages); // limit sub-links for performance
+
+                    for (let i = 0; i < links.length; i++) {
+                        try {
+                            statusMsg.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-brand-500 mr-1"></i>リンク先を収集中 (${i+1}/${links.length})...`;
+                            const subHtml = await fetchHTML(links[i]);
+                            const subDoc = parser.parseFromString(subHtml, 'text/html');
+                            let subTitle = subDoc.querySelector('title') ? subDoc.querySelector('title').innerText : `page_${i+1}`;
+                            let subSafeTitle = subTitle.replace(/[\/\\?%*:|"<>]/g, '_').trim() || `page_${i+1}`;
+                            
+                            if (removeNoise) {
+                                ['header', 'footer', 'nav', 'aside', '.sidebar', '.menu'].forEach(sel => {
+                                    subDoc.querySelectorAll(sel).forEach(el => el.remove());
+                                });
+                            }
+
+                            const subMain = subDoc.querySelector('article') || subDoc.querySelector('main') || subDoc.body;
+                            const subMd = turndownService.turndown(subMain.innerHTML);
+                            generatedFiles[`${subSafeTitle}.md`] = `# ${subTitle}\n\n> Source URL: ${links[i]}\n\n${subMd}`;
+                        } catch (subErr) {
+                            console.warn(`Failed to fetch sublink ${links[i]}:`, subErr);
+                        }
+                    }
+                }
+
+                renderFileList();
+                statusMsg.innerHTML = '<i class="fa-solid fa-check text-brand-500 mr-1"></i>変換成功！';
+                document.getElementById('btn-zip').disabled = false;
+
+                // Select first file automatically
+                const firstKey = Object.keys(generatedFiles)[0];
+                if (firstKey) selectFile(firstKey);
+
+            } catch (err) {
+                statusMsg.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1"></i>エラー発生';
+                alert('URLの取得または解析に失敗しました: ' + err.message + '\n※CORSポリシーにより取得できないサイトの場合があります。');
+            }
+        }
+
+        function renderFileList() {
+            const container = document.getElementById('file-list-container');
+            container.innerHTML = '';
+            const keys = Object.keys(generatedFiles);
+            
+            document.getElementById('file-count').textContent = `${keys.length} files`;
+
+            if (keys.length === 0) {
+                container.innerHTML = '<div class="p-8 text-center text-slate-400 text-xs">ファイルがありません</div>';
+                return;
+            }
+
+            keys.forEach(filename => {
+                const item = document.createElement('div');
+                item.className = `p-3.5 text-xs font-mono font-bold cursor-pointer transition-colors flex items-center justify-between hover:bg-slate-50 ${currentSelectedFile === filename ? 'bg-brand-50 text-brand-700 border-l-4 border-brand-500' : 'text-slate-700'}`;
+                item.innerHTML = `<span class="truncate"><i class="fa-solid fa-file-lines text-brand-500 mr-2"></i>${filename}</span><i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>`;
+                item.onclick = () => selectFile(filename);
+                container.appendChild(item);
+            });
+        }
+
+        function selectFile(filename) {
+            currentSelectedFile = filename;
+            renderFileList();
+
+            document.getElementById('preview-filename').innerHTML = `<i class="fa-solid fa-eye text-sky-500 mr-2"></i><span>${filename}</span>`;
+            document.getElementById('btn-copy').classList.remove('hidden');
+
+            const mdContent = generatedFiles[filename];
+            // Simple markdown preview parser
+            let html = mdContent
+                .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+                .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+                .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/> (.*$)/gm, '<blockquote>$1</blockquote>')
+                .replace(/`([^`]+)`/g, '<code>$1</code>')
+                .split('\n\n').map(p => p.startsWith('<') ? p : `<p>${p.replace(/\n/g, '<br>')}</p>`).join('\n');
+
+            document.getElementById('preview-container').innerHTML = html;
+        }
+
+        function copyCurrentMarkdown() {
+            if (!currentSelectedFile || !generatedFiles[currentSelectedFile]) return;
+            const text = generatedFiles[currentSelectedFile];
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textArea);
+            
+            statusMsg.innerHTML = '<i class="fa-solid fa-copy text-brand-500 mr-1"></i>Markdownをコピーしました！';
+            setTimeout(() => {
+                statusMsg.innerHTML = '<i class="fa-solid fa-check text-brand-500 mr-1"></i>準備完了';
+            }, 2000);
+        }
+
+        async function downloadZip() {
+            const keys = Object.keys(generatedFiles);
+            if (keys.length === 0) return;
+
+            statusMsg.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-brand-500 mr-1"></i>ZIPを圧縮中...';
+            const zip = new JSZip();
+
+            keys.forEach(filename => {
+                zip.file(filename, generatedFiles[filename]);
+            });
+
+            const content = await zip.generateAsync({ type: 'blob' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(content);
+            link.download = 'scraped_markdowns.zip';
+            link.click();
+
+            statusMsg.innerHTML = '<i class="fa-solid fa-check text-brand-500 mr-1"></i>ZIPダウンロード完了';
+        }
+    </script>
+</body>
+</html>

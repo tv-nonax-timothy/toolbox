@@ -57,7 +57,9 @@
         .markdown-body th { background-color: #f1f5f9; font-weight: bold; }
         .markdown-body a { color: #16a34a; text-decoration: underline; }
         /* Mermaid Diagram Container */
-        .mermaid { background: #ffffff; text-align: center; margin: 1rem 0; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 0.75rem; }
+        .mermaid { position: relative; background: #ffffff; text-align: center; margin: 1rem 0; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 0.75rem; }
+        .diagram-export-actions { position: absolute; top: 0.5rem; right: 0.5rem; display: flex; gap: 0.35rem; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+        .mermaid:hover .diagram-export-actions, .diagram-export-actions:focus-within { opacity: 1; pointer-events: auto; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -76,11 +78,23 @@
                 </div>
             </div>
 
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center justify-end gap-2 flex-wrap">
                 <span id="save-status" class="text-xs text-slate-400 font-medium hidden sm:inline"><i class="fa-solid fa-check text-brand-500 mr-1"></i>自動保存済み</span>
                 <button onclick="toggleCheatSheet()" class="bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold px-3.5 py-2 rounded-xl text-xs sm:text-sm transition-all flex items-center space-x-1.5 border border-brand-200">
                     <i class="fa-solid fa-book-open"></i>
                     <span>チートシート</span>
+                </button>
+                <button onclick="openMermaidEditor('er')" class="bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold px-3 py-2 rounded-xl text-xs transition-all flex items-center space-x-1 border border-sky-200" title="Mermaid ER図をGUIで編集">
+                    <i class="fa-solid fa-database"></i>
+                    <span>Mermaid（ER図）</span>
+                </button>
+                <button onclick="openMermaidEditor('flowchart')" class="bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold px-3 py-2 rounded-xl text-xs transition-all flex items-center space-x-1 border border-sky-200" title="MermaidフローをGUIで編集">
+                    <i class="fa-solid fa-diagram-project"></i>
+                    <span>Mermaid（フロー）</span>
+                </button>
+                <button onclick="openMermaidEditor('sequence')" class="bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold px-3 py-2 rounded-xl text-xs transition-all flex items-center space-x-1 border border-sky-200" title="Mermaidシーケンス図をGUIで編集">
+                    <i class="fa-solid fa-right-left"></i>
+                    <span>Mermaid（シーケンス）</span>
                 </button>
                 <button onclick="clearEditor()" class="bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 font-bold px-3 py-2 rounded-xl text-xs sm:text-sm transition-all" title="クリア">
                     <i class="fa-solid fa-trash-can"></i>
@@ -223,6 +237,18 @@
         const textarea = document.getElementById('markdown-input');
         const preview = document.getElementById('preview-output');
         const saveStatus = document.getElementById('save-status');
+        let lastEditorSelection = { start: 0, end: 0 };
+
+        function rememberEditorSelection() {
+            lastEditorSelection = {
+                start: textarea.selectionStart,
+                end: textarea.selectionEnd
+            };
+        }
+
+        textarea.addEventListener('select', rememberEditorSelection);
+        textarea.addEventListener('keyup', rememberEditorSelection);
+        textarea.addEventListener('mouseup', rememberEditorSelection);
 
         // Built-in markdown parser with Mermaid support
         function parseMarkdown(md) {
@@ -306,6 +332,7 @@ sequenceDiagram
         window.addEventListener('DOMContentLoaded', async () => {
             const saved = localStorage.getItem(STORAGE_KEY);
             textarea.value = saved !== null ? saved : defaultContent;
+            applyMermaidReturn();
             await updatePreview();
         });
 
@@ -323,6 +350,7 @@ sequenceDiagram
                 await mermaid.run({
                     nodes: preview.querySelectorAll('.mermaid')
                 });
+                addDiagramExportActions();
             } catch (e) {
                 console.error("Mermaid parsing error:", e);
             }
@@ -350,6 +378,117 @@ sequenceDiagram
             
             updatePreview();
             toggleCheatSheet();
+        }
+
+        function getMermaidBlockAtSelection() {
+            const text = textarea.value;
+            const selectionStart = lastEditorSelection.start;
+            const selectionEnd = lastEditorSelection.end;
+            const blockPattern = /```mermaid\s*\n([\s\S]*?)```/g;
+            let match;
+
+            while ((match = blockPattern.exec(text)) !== null) {
+                const blockStart = match.index;
+                const blockEnd = match.index + match[0].length;
+                if (selectionStart <= blockEnd && selectionEnd >= blockStart) {
+                    return { start: blockStart, end: blockEnd, code: match[1].trim() };
+                }
+            }
+            return null;
+        }
+
+        function openMermaidEditor(type) {
+            const block = getMermaidBlockAtSelection();
+            sessionStorage.setItem('mermaid_edit_request', JSON.stringify({
+                type,
+                source: textarea.value,
+                start: block ? block.start : null,
+                end: block ? block.end : null,
+                blockText: block ? textarea.value.substring(block.start, block.end) : null,
+                code: block ? block.code : ''
+            }));
+            const pages = { er: 'mermaid_er.html', flowchart: 'mermaid_flowchart.html', sequence: 'mermaid_sequence.html' };
+            window.location.href = pages[type];
+        }
+
+        function applyMermaidReturn() {
+            const stored = sessionStorage.getItem('mermaid_return_payload');
+            if (!stored) return;
+            sessionStorage.removeItem('mermaid_return_payload');
+
+            try {
+                const payload = JSON.parse(stored);
+                const replacement = '```mermaid\n' + payload.code.trim() + '\n```\n';
+                const source = textarea.value;
+                let blockStart = -1;
+                let blockEnd = -1;
+
+                if (Number.isInteger(payload.start) && Number.isInteger(payload.end) && payload.start >= 0 && payload.end <= source.length) {
+                    const candidate = source.substring(payload.start, payload.end);
+                    if (/^```mermaid\s*\n[\s\S]*```\s*$/.test(candidate)) {
+                        blockStart = payload.start;
+                        blockEnd = payload.end;
+                    }
+                }
+                if (blockStart < 0 && payload.blockText) {
+                    blockStart = source.indexOf(payload.blockText);
+                    blockEnd = blockStart >= 0 ? blockStart + payload.blockText.length : -1;
+                }
+                if (blockStart >= 0) {
+                    textarea.value = source.substring(0, blockStart) + replacement + source.substring(blockEnd);
+                } else {
+                    const position = textarea.selectionStart;
+                    textarea.value = source.substring(0, position) + replacement + source.substring(position);
+                }
+                textarea.focus();
+            } catch (error) {
+                console.error('Mermaid return data could not be applied:', error);
+            }
+        }
+
+        function addDiagramExportActions() {
+            preview.querySelectorAll('.mermaid').forEach((diagram, index) => {
+                if (diagram.querySelector('.diagram-export-actions')) return;
+                const actions = document.createElement('div');
+                actions.className = 'diagram-export-actions';
+                actions.innerHTML = `
+                    <button type="button" title="PNGで保存" aria-label="PNGで保存" class="bg-white/95 hover:bg-sky-50 text-sky-700 border border-sky-200 shadow-sm rounded-lg px-2 py-1 text-xs" onclick="downloadDiagramImage(this.closest('.mermaid'), 'png', ${index})"><i class="fa-solid fa-file-image"></i></button>
+                    <button type="button" title="SVGで保存" aria-label="SVGで保存" class="bg-white/95 hover:bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm rounded-lg px-2 py-1 text-xs" onclick="downloadDiagramImage(this.closest('.mermaid'), 'svg', ${index})"><i class="fa-solid fa-vector-square"></i></button>`;
+                diagram.appendChild(actions);
+            });
+        }
+
+        function downloadBlob(blob, filename) {
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+        }
+
+        function downloadDiagramImage(diagram, format, index) {
+            const svg = diagram.querySelector('svg');
+            if (!svg) return;
+            const svgText = new XMLSerializer().serializeToString(svg);
+            if (format === 'svg') {
+                downloadBlob(new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' }), `mermaid-diagram-${index + 1}.svg`);
+                return;
+            }
+
+            const image = new Image();
+            const svgUrl = URL.createObjectURL(new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' }));
+            image.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = svg.viewBox.baseVal.width || svg.getBoundingClientRect().width;
+                canvas.height = svg.viewBox.baseVal.height || svg.getBoundingClientRect().height;
+                const context = canvas.getContext('2d');
+                context.fillStyle = '#ffffff';
+                context.fillRect(0, 0, canvas.width, canvas.height);
+                context.drawImage(image, 0, 0, canvas.width, canvas.height);
+                canvas.toBlob(blob => downloadBlob(blob, `mermaid-diagram-${index + 1}.png`), 'image/png');
+                URL.revokeObjectURL(svgUrl);
+            };
+            image.src = svgUrl;
         }
 
         function clearEditor() {

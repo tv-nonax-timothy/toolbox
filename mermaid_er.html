@@ -20,6 +20,8 @@
         <div class="flex items-center space-x-2">
             <button onclick="loadSample()" class="px-3 py-2 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg"><i class="fa-solid fa-bolt mr-1"></i>サンプル読込</button>
             <button onclick="openImport()" class="px-3 py-2 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg"><i class="fa-solid fa-file-import mr-1"></i>既存コードのインポート</button>
+            <button onclick="sendToMarkdown()" class="px-3 py-2 text-xs font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg"><i class="fa-solid fa-arrow-up-right-from-square mr-1"></i>このままMarkdownメモへ送る</button>
+            <button onclick="returnToMarkdown()" class="px-3 py-2 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg"><i class="fa-solid fa-arrow-left mr-1"></i>Markdownメモに戻る</button>
             <button onclick="resetData()" class="px-3 py-2 text-xs font-medium text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg"><i class="fa-solid fa-trash-can mr-1"></i>リセット</button>
         </div>
     </header>
@@ -42,7 +44,7 @@
 <script>
 mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'loose' });
 let data;
-function sampleData() { return { tables: [{ id: 't1', name: 'users', columns: [{ id: 'c1', name: 'id', type: 'int', constraint: 'PK' }, { id: 'c2', name: 'username', type: 'varchar', constraint: '' }, { id: 'c3', name: 'email', type: 'varchar', constraint: '' }] }, { id: 't2', name: 'posts', columns: [{ id: 'c4', name: 'id', type: 'int', constraint: 'PK' }, { id: 'c5', name: 'user_id', type: 'int', constraint: 'FK' }, { id: 'c6', name: 'title', type: 'varchar', constraint: '' }] }], relations: [{ id: 'r1', fromTable: 'users', toTable: 'posts', type: '||--o{' }] }; }
+function sampleData() { return { tables: [{ id: 't1', name: 'users', columns: [{ id: 'c1', name: 'id', type: 'int', constraint: 'PK' }, { id: 'c2', name: 'username', type: 'varchar', constraint: '' }, { id: 'c3', name: 'email', type: 'varchar', constraint: '' }] }, { id: 't2', name: 'posts', columns: [{ id: 'c4', name: 'id', type: 'int', constraint: 'PK' }, { id: 'c5', name: 'user_id', type: 'int', constraint: 'FK' }, { id: 'c6', name: 'title', type: 'varchar', constraint: '' }] }], relations: [{ id: 'r1', fromTable: 'users', toTable: 'posts', type: '||--o{', label: 'relates' }] }; }
 function loadSample() { data = sampleData(); render(); toast('サンプルデータをロードしました'); }
 function resetData() { data = { tables: [], relations: [] }; render(); toast('リセットしました'); }
 function id(prefix) { return prefix + '_' + Math.random().toString(36).substring(2, 8); }
@@ -50,23 +52,82 @@ function addTable() { data.tables.push({ id: id('t'), name: 'new_table', columns
 function addColumn(tableId) { const table = data.tables.find(item => item.id === tableId); table.columns.push({ id: id('c'), name: 'column_name', type: 'varchar', constraint: '' }); render(); }
 function removeTable(tableId) { data.tables = data.tables.filter(item => item.id !== tableId); data.relations = data.relations.filter(item => item.fromTable !== tableId && item.toTable !== tableId); render(); }
 function removeColumn(tableId, columnId) { const table = data.tables.find(item => item.id === tableId); table.columns = table.columns.filter(item => item.id !== columnId); render(); }
-function addRelation() { if (data.tables.length < 2) return toast('リレーションには2つ以上のテーブルが必要です'); data.relations.push({ id: id('r'), fromTable: data.tables[0].name, toTable: data.tables[1].name, type: '||--o{' }); render(); }
+function addRelation() { if (data.tables.length < 2) return toast('リレーションには2つ以上のテーブルが必要です'); data.relations.push({ id: id('r'), fromTable: data.tables[0].name, toTable: data.tables[1].name, type: '||--o{', label: 'relates' }); render(); }
 function removeRelation(relationId) { data.relations = data.relations.filter(item => item.id !== relationId); render(); }
 function updateTable(tableId, value) { const table = data.tables.find(item => item.id === tableId); table.name = value; const relation = data.relations; relation.forEach(item => { if (item.fromTable === tableId) item.fromTable = value; if (item.toTable === tableId) item.toTable = value; }); renderDiagram(); }
 function updateColumn(tableId, columnId, field, value) { const table = data.tables.find(item => item.id === tableId); table.columns.find(item => item.id === columnId)[field] = value; renderDiagram(); }
 function safe(value, fallback) { const result = String(value || '').trim().replace(/[^A-Za-z0-9_]/g, '_') || fallback; return /^[A-Za-z_]/.test(result) ? result : '_' + result; }
-function generateCode() { let result = 'erDiagram\n'; data.tables.forEach(table => { const name = safe(table.name, 'unnamed'); result += `    ${name} {\n`; table.columns.forEach(column => { result += `        ${column.type || 'varchar'} ${safe(column.name, 'column')}${column.constraint ? ' ' + column.constraint : ''}\n`; }); result += '    }\n'; }); data.relations.forEach(relation => { result += `    ${safe(relation.fromTable, 'tableA')} ${relation.type} ${safe(relation.toTable, 'tableB')} : "relates"\n`; }); return result; }
-function render() { renderGui(); renderDiagram(); }
+function relationLabel(line) { const match = line.match(/:\s*(?:"([^"]*)"|(.+))\s*$/); return match ? (match[1] || match[2] || 'relates').trim() : 'relates'; }
+function generateCode() { let result = 'erDiagram\n'; data.tables.forEach(table => { const name = safe(table.name, 'unnamed'); result += `    ${name} {\n`; table.columns.forEach(column => { result += `        ${column.type || 'varchar'} ${safe(column.name, 'column')}${column.constraint ? ' ' + column.constraint : ''}\n`; }); result += '    }\n'; }); data.relations.forEach(relation => { const label = String(relation.label || 'relates').replace(/"/g, '\\"'); result += `    ${safe(relation.fromTable, 'tableA')} ${relation.type} ${safe(relation.toTable, 'tableB')} : "${label}"\n`; }); return result; }
+function render() { renderGui(); decorateRelationLabels(); renderDiagram(); }
+function decorateRelationLabels() {
+    document.querySelectorAll('#relations > div').forEach(row => {
+        if (row.querySelector('.relation-label-input')) return;
+        const removeButton = row.querySelector('button[onclick^="removeRelation"]');
+        if (!removeButton) return;
+        const match = removeButton.getAttribute('onclick').match(/removeRelation\('([^']+)'\)/);
+        if (!match) return;
+        const relation = data.relations.find(item => item.id === match[1]);
+        if (!relation) return;
+        const input = document.createElement('input');
+        input.className = 'relation-label-input w-24 border rounded px-2 py-1 text-xs';
+        input.value = relation.label || 'relates';
+        input.placeholder = '関係名';
+        input.title = 'リレーション名';
+        input.oninput = event => relationValue(relation.id, 'label', event.target.value);
+        row.insertBefore(input, removeButton);
+    });
+}
 function renderGui() { document.getElementById('tables').innerHTML = data.tables.map(table => `<div class="bg-slate-50 border rounded-xl p-4 space-y-3"><div class="flex gap-2 items-center"><input value="${table.name}" oninput="updateTable('${table.id}', this.value)" class="flex-1 bg-white border rounded-lg px-2 py-1 text-sm font-bold"><button onclick="addColumn('${table.id}')" class="text-xs border bg-white px-2 py-1 rounded">カラム追加</button><button onclick="removeTable('${table.id}')" class="text-rose-500 p-1"><i class="fa-solid fa-trash"></i></button></div>${table.columns.map(column => `<div class="flex gap-2 pl-4"><input value="${column.name}" oninput="updateColumn('${table.id}','${column.id}','name',this.value)" class="flex-1 border rounded px-2 py-1 text-xs"><select onchange="updateColumn('${table.id}','${column.id}','type',this.value)" class="border rounded text-xs"><option ${column.type === 'int' ? 'selected' : ''}>int</option><option ${column.type === 'varchar' ? 'selected' : ''}>varchar</option><option ${column.type === 'text' ? 'selected' : ''}>text</option><option ${column.type === 'boolean' ? 'selected' : ''}>boolean</option></select><select onchange="updateColumn('${table.id}','${column.id}','constraint',this.value)" class="border rounded text-xs"><option value="" ${!column.constraint ? 'selected' : ''}>なし</option><option value="PK" ${column.constraint === 'PK' ? 'selected' : ''}>PK</option><option value="FK" ${column.constraint === 'FK' ? 'selected' : ''}>FK</option><option value="UK" ${column.constraint === 'UK' ? 'selected' : ''}>UK</option></select><button onclick="removeColumn('${table.id}','${column.id}')" class="text-rose-500"><i class="fa-solid fa-xmark"></i></button></div>`).join('')}</div>`).join(''); document.getElementById('relations').innerHTML = data.relations.map(relation => `<div class="flex gap-2 items-center"><select onchange="relationValue('${relation.id}','fromTable',this.value)" class="flex-1 border rounded px-2 py-1 text-xs">${data.tables.map(table => `<option value="${table.name}" ${table.name === relation.fromTable ? 'selected' : ''}>${table.name}</option>`).join('')}</select><select onchange="relationValue('${relation.id}','type',this.value)" class="border rounded px-2 py-1 text-xs"><option value="||--o{" ${relation.type === '||--o{' ? 'selected' : ''}>1対多</option><option value="||--||" ${relation.type === '||--||' ? 'selected' : ''}>1対1</option><option value="}o--o{" ${relation.type === '}o--o{' ? 'selected' : ''}>多対多</option></select><select onchange="relationValue('${relation.id}','toTable',this.value)" class="flex-1 border rounded px-2 py-1 text-xs">${data.tables.map(table => `<option value="${table.name}" ${table.name === relation.toTable ? 'selected' : ''}>${table.name}</option>`).join('')}</select><button onclick="removeRelation('${relation.id}')" class="text-rose-500"><i class="fa-solid fa-trash"></i></button></div>`).join(''); }
 function relationValue(relationId, field, value) { const relation = data.relations.find(item => item.id === relationId); relation[field] = value; renderDiagram(); }
 async function renderDiagram() { const code = generateCode(); document.getElementById('code').textContent = code; try { const result = await mermaid.render('er-' + Date.now(), code); document.getElementById('preview').innerHTML = result.svg; } catch (error) { document.getElementById('preview').innerHTML = '<p class="text-rose-500 text-sm">Mermaidコードを描画できません</p>'; } }
 function openImport() { document.getElementById('import-modal').classList.remove('hidden'); document.getElementById('import-modal').classList.add('flex'); document.getElementById('import-text').focus(); }
 function closeImport() { document.getElementById('import-modal').classList.add('hidden'); document.getElementById('import-modal').classList.remove('flex'); }
-function importCode() { try { const lines = document.getElementById('import-text').value.split(/\r?\n/); if (lines.find(line => line.trim().toLowerCase()) !== 'erdiagram') throw new Error('erDiagramから始まるコードを入力してください'); const tables = []; const relations = []; let current = null; lines.slice(1).forEach(line => { const table = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*\{\s*$/); const column = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s+([A-Za-z_][A-Za-z0-9_]*)(?:\s+(PK|FK|UK))?\s*$/); const relation = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s+(\|\|--o\{|\|\|--\|\||\}o--o\{|\|o--o\{)\s+([A-Za-z_][A-Za-z0-9_]*)/); if (table) { current = { id: id('t'), name: table[1], columns: [] }; tables.push(current); } else if (line.trim() === '}') current = null; else if (current && column) current.columns.push({ id: id('c'), type: column[1], name: column[2], constraint: column[3] || '' }); else if (relation) relations.push({ id: id('r'), fromTable: relation[1], type: relation[2], toTable: relation[3] }); }); if (!tables.length) throw new Error('テーブルを読み取れませんでした'); data = { tables, relations }; closeImport(); render(); toast('ER図をGUIへ展開しました'); } catch (error) { toast(error.message); } }
+function importCode() { try { const lines = document.getElementById('import-text').value.split(/\r?\n/); const first = lines.find(line => line.trim()); if (!first || first.trim().toLowerCase() !== 'erdiagram') throw new Error('erDiagramから始まるコードを入力してください'); const tables = []; const relations = []; let current = null; lines.slice(1).forEach(line => { const table = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*\{\s*$/); const column = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s+([A-Za-z_][A-Za-z0-9_]*)(?:\s+(PK|FK|UK))?\s*$/); const relation = line.match(/^\s*([A-Za-z_][A-Za-z0-9_-]*)\s+(\|\|--o\{|\|\|--\|\||\|\|--\|\{|\}o--o\{|\|o--o\{)\s+([A-Za-z_][A-Za-z0-9_-]*)/); if (table) { current = { id: id('t'), name: table[1], columns: [] }; tables.push(current); } else if (line.trim() === '}') current = null; else if (current && column) current.columns.push({ id: id('c'), type: column[1], name: column[2], constraint: column[3] || '' }); else if (relation) relations.push({ id: id('r'), fromTable: relation[1], type: relation[2], toTable: relation[3], label: relationLabel(line) }); }); if (!tables.length) throw new Error('テーブルを読み取れませんでした'); data = { tables, relations }; closeImport(); render(); toast('ER図をGUIへ展開しました'); } catch (error) { toast(error.message); } }
+function sendToMarkdown() { const request = JSON.parse(sessionStorage.getItem('mermaid_edit_request') || '{}'); sessionStorage.setItem('mermaid_return_payload', JSON.stringify({ type: 'er', code: generateCode(), source: request.source || null, start: request.start ?? null, end: request.end ?? null, blockText: request.blockText || null })); window.location.href = 'markdown_memo.html'; }
+function returnToMarkdown() { sessionStorage.removeItem('mermaid_edit_request'); sessionStorage.removeItem('mermaid_return_payload'); window.location.href = 'markdown_memo.html'; }
 function copyCode() { navigator.clipboard.writeText(generateCode()); toast('コードをコピーしました'); }
 function downloadCode() { const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([generateCode()], { type: 'text/plain;charset=utf-8' })); link.download = 'er-diagram.mmd'; link.click(); toast('ファイルを保存しました'); }
+function importHandoffCode(code) {
+    const lines = code.split(/\r?\n/);
+    const tables = [];
+    const relations = [];
+    const tableNames = new Set();
+    let currentTable = null;
+    const entityPattern = '[A-Za-z_][A-Za-z0-9_-]*';
+    const ensureTable = name => {
+        if (!tableNames.has(name)) {
+            tableNames.add(name);
+            tables.push({ id: id('t'), name, columns: [] });
+        }
+    };
+
+    lines.slice(1).forEach(line => {
+        const tableMatch = line.match(new RegExp(`^\\s*(${entityPattern})\\s*\\{\\s*$`));
+        const columnMatch = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s+([A-Za-z_][A-Za-z0-9_]*)(?:\s+(PK|FK|UK))?\s*$/);
+        const relationMatch = line.match(new RegExp(`^\\s*(${entityPattern})\\s+(\\|\\|--o\\{|\\|\\|--\\|\\||\\|\\|--\\|\\{|\\}o--o\\{|\\|o--o\\{)\\s+(${entityPattern})\\s*(?::.*)?$`));
+
+        if (tableMatch) {
+            currentTable = { id: id('t'), name: tableMatch[1], columns: [] };
+            tableNames.add(tableMatch[1]);
+            tables.push(currentTable);
+        } else if (line.trim() === '}') {
+            currentTable = null;
+        } else if (currentTable && columnMatch) {
+            currentTable.columns.push({ id: id('c'), type: columnMatch[1], name: columnMatch[2], constraint: columnMatch[3] || '' });
+        } else if (relationMatch) {
+            ensureTable(relationMatch[1]);
+            ensureTable(relationMatch[3]);
+            relations.push({ id: id('r'), fromTable: relationMatch[1], type: relationMatch[2], toTable: relationMatch[3], label: relationLabel(line) });
+        }
+    });
+
+    if (!tables.length) throw new Error('ER図のエンティティを読み取れませんでした');
+    data = { tables, relations };
+}
+
 function toast(message) { const element = document.getElementById('toast'); document.getElementById('toast-text').textContent = message; element.classList.remove('translate-y-20', 'opacity-0'); setTimeout(() => element.classList.add('translate-y-20', 'opacity-0'), 2200); }
-window.onload = () => { data = sampleData(); render(); };
+window.onload = () => { data = sampleData(); const request = JSON.parse(sessionStorage.getItem('mermaid_edit_request') || 'null'); if (request && request.type === 'er' && request.code) { importHandoffCode(request.code); sessionStorage.removeItem('mermaid_edit_request'); render(); } else render(); };
 </script>
 </body>
 </html>

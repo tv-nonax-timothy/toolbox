@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今日の晩御飯は何が良いかなジェネレータ</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts Inter & Noto Sans JP -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+        /* Custom bounce for buttons */
+        @keyframes pulse-subtle {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+        .animate-pulse-subtle {
+            animation: pulse-subtle 2s infinite;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-amber-50 via-orange-50 to-rose-100 min-h-screen text-slate-800 flex flex-col justify-between">
+
+    <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-orange-100">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <a href="index.html" class="w-10 h-10 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-xl flex items-center justify-center transition" title="道具箱のトップへ戻る">
+                    <span aria-hidden="true">←</span>
+                </a>
+                <span class="text-3xl">🍳</span>
+                <h1 class="text-xl sm:text-2xl font-black bg-gradient-to-r from-orange-600 to-rose-600 bg-clip-text text-transparent">
+                    晩御飯決定ジェネレータ
+                </h1>
+            </div>
+            <div id="user-badge" class="hidden text-xs sm:text-sm bg-orange-100 text-orange-800 font-bold px-3 py-1.5 rounded-full shadow-sm flex items-center space-x-1">
+                <span id="badge-text">設定中</span>
+                <button onclick="resetSetup()" class="ml-2 text-orange-500 hover:text-orange-700 underline text-xs">変更</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-3xl w-full mx-auto px-4 py-6 sm:py-10 flex-grow flex flex-col justify-center">
+
+        <!-- SETUP SCREEN -->
+        <div id="setup-screen" class="bg-white/95 backdrop-blur-md rounded-3xl shadow-xl p-6 sm:p-10 border border-orange-100 transition-all duration-300">
+            <div class="text-center mb-8">
+                <span class="text-5xl inline-block mb-2 animate-bounce">🤔</span>
+                <h2 class="text-2xl sm:text-3xl font-black text-slate-900 mb-2">まずはアナタのステータスを教えてください</h2>
+                <p class="text-sm text-slate-600">この情報をもとに、ジェネレータが容赦なくメニューを判定します。</p>
+            </div>
+
+            <form id="setup-form" onsubmit="handleSetupSubmit(event)" class="space-y-6">
+                <!-- Gender -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">性別</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <label class="border-2 border-slate-200 rounded-2xl p-3 text-center cursor-pointer hover:border-orange-500 transition has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50 has-[:checked]:text-orange-900 font-bold">
+                            <input type="radio" name="gender" value="男性" required class="sr-only"> 男性
+                        </label>
+                        <label class="border-2 border-slate-200 rounded-2xl p-3 text-center cursor-pointer hover:border-orange-500 transition has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50 has-[:checked]:text-orange-900 font-bold">
+                            <input type="radio" name="gender" value="女性" class="sr-only"> 女性
+                        </label>
+                        <label class="border-2 border-slate-200 rounded-2xl p-3 text-center cursor-pointer hover:border-orange-500 transition has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50 has-[:checked]:text-orange-900 font-bold">
+                            <input type="radio" name="gender" value="その他" class="sr-only"> その他
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Age Group -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">年齢層</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <label class="border-2 border-slate-200 rounded-2xl p-3 text-center cursor-pointer hover:border-orange-500 transition has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50 has-[:checked]:text-orange-900 font-bold">
+                            <input type="radio" name="ageGroup" value="若者" required class="sr-only"> 若者 (10-20代)
+                        </label>
+                        <label class="border-2 border-slate-200 rounded-2xl p-3 text-center cursor-pointer hover:border-orange-500 transition has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50 has-[:checked]:text-orange-900 font-bold">
+                            <input type="radio" name="ageGroup" value="中年" class="sr-only"> 中年 (30-50代)
+                        </label>
+                        <label class="border-2 border-slate-200 rounded-2xl p-3 text-center cursor-pointer hover:border-orange-500 transition has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50 has-[:checked]:text-orange-900 font-bold">
+                            <input type="radio" name="ageGroup" value="老人" class="sr-only"> 老人 (60代以上)
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full py-4 bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white font-black text-lg rounded-2xl shadow-lg shadow-orange-500/30 transition transform active:scale-95">
+                    ジェネレータを起動する 🚀
+                </button>
+            </form>
+        </div>
+
+        <!-- MAIN APP SCREEN -->
+        <div id="main-screen" class="hidden space-y-6">
+            
+            <!-- Allergies & Dislikes Management Box -->
+            <div class="bg-white/90 backdrop-blur-md rounded-3xl shadow-md p-5 border border-orange-100">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="font-black text-slate-800 flex items-center space-x-2">
+                        <span>🚨</span> <span>アレルギー・嫌いな食材リスト</span>
+                    </h3>
+                    <div class="flex space-x-2">
+                        <button onclick="exportData()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-xl transition">
+                            📤 エクスポート
+                        </button>
+                        <label class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-xl transition cursor-pointer">
+                            📥 インポート
+                            <input type="file" id="import-file" accept=".json" onchange="importData(event)" class="hidden">
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Add item form -->
+                <form onsubmit="addExclusion(event)" class="flex gap-2 mb-3">
+                    <input type="text" id="exclusion-input" placeholder="例: トマト、エビ、パクチーなど" required
+                        class="flex-grow bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white font-bold px-5 py-2 rounded-2xl text-sm transition">
+                        追加
+                    </button>
+                </form>
+
+                <!-- List table/badges -->
+                <div id="exclusions-list" class="flex flex-wrap gap-2 max-h-24 overflow-y-auto p-1">
+                    <!-- Dynamic Badges -->
+                </div>
+            </div>
+
+            <!-- Generator Action Box -->
+            <div class="bg-white/95 backdrop-blur-md rounded-3xl shadow-xl p-6 sm:p-10 border border-orange-100 text-center relative overflow-hidden">
+                <div id="roulette-display" class="my-6 py-10 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center min-h-[180px]">
+                    <span class="text-4xl mb-3">🍽️</span>
+                    <h3 id="result-title" class="text-2xl sm:text-3xl font-black text-slate-800">「なんでもいい」の準備はOK？</h3>
+                    <p id="result-subtitle" class="text-sm text-slate-500 mt-2">下の巨大ボタンを押して運命を委ねよう！</p>
+                </div>
+
+                <!-- Giant "Whatever" Button -->
+                <div class="space-y-4">
+                    <button id="generator-btn" onclick="startGeneration()" class="w-full py-6 bg-gradient-to-r from-rose-500 via-orange-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white font-black text-2xl sm:text-3xl rounded-3xl shadow-xl shadow-orange-500/40 transition transform active:scale-95 animate-pulse-subtle">
+                        ✨ なんでもいい ✨
+                    </button>
+
+                    <!-- Secondary "Spin Again" Button (Will trigger guilt trap) -->
+                    <div class="flex justify-center">
+                        <button id="retry-btn" onclick="handleRetry()" class="hidden text-sm text-slate-500 hover:text-slate-800 font-bold py-2 px-4 rounded-xl transition bg-slate-100 hover:bg-slate-200">
+                            🔄 もう1回まわす
+                        </button>
+                    </div>
+                </div>
+
+                <!-- RESULT METRICS & COMMENTS CONTAINER (Hidden initially) -->
+                <div id="result-details" class="hidden mt-8 pt-6 border-t border-slate-100 space-y-6 text-left">
+                    <!-- Recipe Links -->
+                    <div class="flex flex-wrap gap-3 justify-center">
+                        <a id="cookpad-link" href="#" target="_blank" class="flex items-center space-x-2 bg-amber-500 hover:bg-amber-600 text-white font-bold px-5 py-2.5 rounded-2xl shadow-md transition text-sm">
+                            <span>📖 クックパッドで検索</span>
+                        </a>
+                        <a id="youtube-link" href="#" target="_blank" class="flex items-center space-x-2 bg-red-500 hover:bg-red-600 text-white font-bold px-5 py-2.5 rounded-2xl shadow-md transition text-sm">
+                            <span>▶️ YouTubeで動画を見る</span>
+                        </a>
+                    </div>
+
+                    <!-- Guilt Meter & Match Comment Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Guilt Meter -->
+                        <div class="bg-rose-50/70 border border-rose-100 p-5 rounded-2xl space-y-3">
+                            <h4 class="font-black text-rose-900 text-sm flex items-center space-x-1">
+                                <span>⚠️</span> <span>罪悪感＆カロリーメーター</span>
+                            </h4>
+                            <div>
+                                <div class="flex justify-between text-xs font-bold text-slate-700 mb-1">
+                                    <span>推定摂取カロリー</span>
+                                    <span id="calorie-text" class="text-rose-600 font-black text-sm">0 kcal</span>
+                                </div>
+                                <div class="w-full bg-slate-200 h-3 rounded-full overflow-hidden">
+                                    <div id="calorie-bar" class="bg-gradient-to-r from-orange-400 to-rose-600 h-full w-0 transition-all duration-1000"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs font-bold text-slate-700 mb-1">
+                                    <span>食べた時の罪悪感</span>
+                                    <span id="guilt-text" class="text-rose-600 font-black text-sm">0%</span>
+                                </div>
+                                <div class="w-full bg-slate-200 h-3 rounded-full overflow-hidden">
+                                    <div id="guilt-bar" class="bg-gradient-to-r from-amber-400 to-rose-700 h-full w-0 transition-all duration-1000"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Match Comment -->
+                        <div class="bg-orange-50/70 border border-orange-100 p-5 rounded-2xl flex flex-col justify-between">
+                            <div>
+                                <h4 class="font-black text-orange-900 text-sm flex items-center space-x-1 mb-2">
+                                    <span>🗣️</span> <span id="target-audience-title">属性マッチ度診断</span>
+                                </h4>
+                                <p id="match-comment" class="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
+                                    ここにコメントが表示されます。
+                                </p>
+                            </div>
+                            <div class="mt-3 text-[10px] text-slate-400 text-right">
+                                ※ジェネレータの勝手な偏見による判定です
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- CUSTOM MODAL / MESSAGE BOX (No alert/confirm used) -->
+    <div id="custom-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-orange-100 text-center space-y-4 animate-in fade-in zoom-in duration-200">
+            <div id="modal-icon" class="text-4xl">🚨</div>
+            <h3 id="modal-title" class="text-lg font-black text-slate-900">警告</h3>
+            <p id="modal-message" class="text-sm text-slate-600 leading-relaxed">メッセージ内容</p>
+            <button onclick="closeModal()" class="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-2xl shadow-md transition">
+                了解
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center py-6 text-xs text-slate-400">
+        &copy; 2026 今日の晩御飯は何が良いかなジェネレータ. All rights reserved.
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Database of Dishes with calories, guilt factors, and descriptions
+        const dishDatabase = [
+            { name: "こってり豚骨ラーメン ＋ 炒飯セット", calories: 1250, guilt: 95, tags: ["麺類", "中華", "こってり"], 
+              comments: {
+                若者: "若さの特権！胃もたれなんて恐れずにスープまで飲み干せ！最高カロリー爆弾！",
+                中年: "おいおい、健康診断の数値を直視しろ！翌朝の胃もたれとむくみは確実だぞ……。",
+                老人: "おばあちゃん、これを見ておくれよ、血圧とコレステロールが泣いているよ……。"
+              }
+            },
+            { name: "特製チーズたっぷりドリア", calories: 950, guilt: 85, tags: ["洋食", "チーズ", "米"],
+              comments: {
+                若者: "チーズの海に溺れろ！ハイカロリーだけど満足感は宇宙レベル！",
+                中年: "夜にこの量のチーズは重い…。だが、ワインを合わせれば大人の贅沢だ！",
+                老人: "トロトロしていて食べやすいが、胃袋のキャパシティを超えるかもしれんね。"
+              }
+            },
+            { name: "サクサク大盛りロースカツ定食", calories: 1100, guilt: 90, tags: ["揚げ物", "肉", "和食"],
+              comments: {
+                若者: "肉！脂！衣！これぞ漢（女）のロマン！満腹中枢を破壊せよ！",
+                中年: "美味い、だが胃のあたりがズッシリと思い出す年齢だ。キャベツを死ぬほど食え！",
+                老人: "衣が少し歯に厳しいかもしれないが、たまの肉は精がついて良いねえ。"
+              }
+            },
+            { name: "具だくさん野菜スープ ＆ 雑穀米", calories: 380, guilt: 15, tags: ["ヘルシー", "和食", "野菜"],
+              comments: {
+                若者: "えっ、意識高すぎん？もっと肉とか脂を食べなくて大丈夫か！？",
+                中年: "素晴らしいチョイス！内臓が喜んでいるのが分かる。これで今夜は安眠できるぞ。",
+                老人: "体に優しくて実に素晴らしい。こういうのでいいんだよ、こういうので。"
+              }
+            },
+            { name: "手羽先のピリ辛唐揚げ ＆ ビール", calories: 850, guilt: 75, tags: ["おつまみ", "揚げ物", "肉"],
+              comments: {
+                若者: "最高すぎる仕事終わりのコンボ！夜更かししてゲームしたくなる味！",
+                中年: "ビールが進みすぎて翌日の二日酔いが怖い。でも誘惑に勝てるわけがない！",
+                老人: "塩分と油分に気をつけなさいよ。お茶も一緒にしっかり飲むんだよ。"
+              }
+            },
+            { name: "トロサーモンとアボカドのポキ丼", calories: 550, guilt: 30, tags: ["海鮮", "おしゃれ", "米"],
+              comments: {
+                若者: "インスタ映えも狙えるしヘルシーでおしゃれ！完璧な選択だな！",
+                中年: "オメガ3脂肪酸が豊富で健康にも良さそう。おっ、分かってるねぇ！",
+                老人: "お魚が柔らかくて食べやすそうじゃ。さっぱりしていて美味しそうねぇ。"
+              }
+            },
+            { name: "極厚ビーフステーキ ＆ ガーリックライス", calories: 1050, guilt: 92, tags: ["肉", "洋食", "ガッツリ"],
+              comments: {
+                若者: "肉汁がジュワッと溢れる！パワー全開、明日への活力間違いなし！",
+                中年: "ニンニクの匂いが明日まで残りそうだが……美味いからすべて許す！",
+                老人: "歯ごたえがありすぎて入れ歯が心配だが、精をつけるには肉じゃな！"
+              }
+            },
+            { name: "ピリ辛本格麻婆豆腐 ＆ 白ご飯", calories: 720, guilt: 60, tags: ["中華", "辛い", "米"],
+              comments: {
+                若者: "汗をかきながらかき込む麻婆豆腐は最高！白ご飯泥棒め！",
+                中年: "スパイスが新陳代謝を刺激して、おじさんの疲れた身体にしみるぜ！",
+                老人: "辛すぎてむせないように気をつけるんだよ。お水を用意しなさい。"
+              }
+            },
+            { name: "あったかおでん定食（卵・大根・牛すじ）", calories: 420, guilt: 20, tags: ["和食", "ヘルシー", "煮物"],
+              comments: {
+                若者: "ほっこり系かと思いきや、牛すじの旨味が染みていて侮れない美味さ！",
+                中年: "染みる……。出汁の味が心と疲れた肝臓に染み渡るようだ……。",
+                老人: "やっぱり日本の心はこれだねぇ。大根が柔らかくて最高じゃ。"
+              }
+            },
+            { name: "旨辛キムチ鍋（〆の雑炊付き）", calories: 820, guilt: 70, tags: ["鍋", "野菜", "辛い"],
+              comments: {
+                若者: "友達や家族とワイワイ食べるもよし、一人でガッツリもよし！〆の雑炊が神！",
+                中年: "野菜もたっぷり取れるし、発酵食品で腸活にも良さそう。でも塩分には注意な！",
+                老人: "体が芯から温まって良いが、塩分の摂りすぎには気をつけるんじゃよ。"
+              }
+            }
+        ];
+
+        // State variables
+        let currentUser = {
+            gender: null,
+            ageGroup: null
+        };
+
+        let exclusions = ["トマト", "パクチー"];
+        let isLocked = false;
+        let currentDish = null;
+
+        // Initialize on window load
+        window.onload = function() {
+            loadSavedData();
+        };
+
+        // Handle Setup Form Submission
+        function handleSetupSubmit(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            currentUser.gender = formData.get("gender");
+            currentUser.ageGroup = formData.get("ageGroup");
+
+            // Save to localStorage
+            localStorage.setItem("dinner_user", JSON.stringify(currentUser));
+
+            updateUIState();
+        }
+
+        function resetSetup() {
+            localStorage.removeItem("dinner_user");
+            document.getElementById("setup-screen").classList.remove("hidden");
+            document.getElementById("main-screen").classList.add("hidden");
+            document.getElementById("user-badge").classList.add("hidden");
+            document.getElementById("setup-form").reset();
+        }
+
+        function loadSavedData() {
+            const savedUser = localStorage.getItem("dinner_user");
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                updateUIState();
+            }
+
+            const savedExclusions = localStorage.getItem("dinner_exclusions");
+            if (savedExclusions) {
+                try {
+                    exclusions = JSON.parse(savedExclusions);
+                } catch(e) {}
+            }
+            renderExclusions();
+        }
+
+        function updateUIState() {
+            document.getElementById("setup-screen").classList.add("hidden");
+            document.getElementById("main-screen").classList.remove("hidden");
+            document.getElementById("user-badge").classList.remove("hidden");
+            document.getElementById("badge-text").innerText = `${currentUser.gender} / ${currentUser.ageGroup}`;
+            document.getElementById("target-audience-title").innerText = `${currentUser.ageGroup} (${currentUser.gender}) への影響と診断`;
+        }
+
+        // Exclusion Management
+        function renderExclusions() {
+            const listContainer = document.getElementById("exclusions-list");
+            listContainer.innerHTML = "";
+            if (exclusions.length === 0) {
+                listContainer.innerHTML = '<span class="text-xs text-slate-400 italic p-1">登録されているアレルギーや嫌いな食べ物はありません</span>';
+                return;
+            }
+            exclusions.forEach((item, index) => {
+                const badge = document.createElement("div");
+                badge.className = "bg-orange-100 text-orange-900 text-xs font-bold px-3 py-1.5 rounded-xl flex items-center space-x-2 border border-orange-200 animate-in fade-in";
+                badge.innerHTML = `<span>${item}</span> <button onclick="removeExclusion(${index})" class="text-orange-400 hover:text-rose-600 font-bold ml-1">&times;</button>`;
+                listContainer.appendChild(badge);
+            });
+            localStorage.setItem("dinner_exclusions", JSON.stringify(exclusions));
+        }
+
+        function addExclusion(event) {
+            event.preventDefault();
+            const input = document.getElementById("exclusion-input");
+            const val = input.value.trim();
+            if (val && !exclusions.includes(val)) {
+                exclusions.push(val);
+                renderExclusions();
+                input.value = "";
+            }
+        }
+
+        function removeExclusion(index) {
+            exclusions.splice(index, 1);
+            renderExclusions();
+        }
+
+        // Export/Import JSON
+        function exportData() {
+            const data = {
+                user: currentUser,
+                exclusions: exclusions
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "dinner_generator_settings.json";
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.user) {
+                        currentUser = data.user;
+                        localStorage.setItem("dinner_user", JSON.stringify(currentUser));
+                        updateUIState();
+                    }
+                    if (data.exclusions && Array.isArray(data.exclusions)) {
+                        exclusions = data.exclusions;
+                        renderExclusions();
+                    }
+                    showModal("インポート成功", "設定データを正常に読み込みました！");
+                } catch(err) {
+                    showModal("エラー", "JSONファイルの形式が正しくありません。");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Generator Animation & Logic (Roulette or Slot)
+        function startGeneration() {
+            if (isLocked) {
+                showModal("「なんでもいい」の刑", "『なんでもいい』って言ったよね？ もう選択権はありません！最初の運命を受け入れなさい！");
+                return;
+            }
+
+            const btn = document.getElementById("generator-btn");
+            const titleEl = document.getElementById("result-title");
+            const subtitleEl = document.getElementById("result-subtitle");
+            const detailsEl = document.getElementById("result-details");
+            
+            btn.disabled = true;
+            detailsEl.classList.add("hidden");
+
+            // Filter out dishes that contain excluded tags or keywords (simple simulation)
+            let availableDishes = dishDatabase.filter(dish => {
+                return !exclusions.some(exc => dish.name.includes(exc) || dish.tags.includes(exc));
+            });
+
+            if (availableDishes.length === 0) {
+                availableDishes = dishDatabase; // Fallback if all filtered
+            }
+
+            // Randomly choose Roulette or Slot animation style
+            const animMode = Math.random() < 0.5 ? "roulette" : "slot";
+            
+            let counter = 0;
+            const maxSteps = 15;
+            const intervalTime = 80;
+
+            subtitleEl.innerText = animMode === "roulette" ? "🎰 ルーレット回転中..." : "🎲 スロット抽選中...";
+
+            const timer = setInterval(() => {
+                const randomDish = availableDishes[Math.floor(Math.random() * availableDishes.length)];
+                titleEl.innerText = randomDish.name;
+                counter++;
+
+                if (counter >= maxSteps) {
+                    clearInterval(timer);
+                    finalizeSelection(randomDish);
+                }
+            }, intervalTime);
+        }
+
+        function finalizeSelection(dish) {
+            currentDish = dish;
+            const titleEl = document.getElementById("result-title");
+            const subtitleEl = document.getElementById("result-subtitle");
+            const btn = document.getElementById("generator-btn");
+            const retryBtn = document.getElementById("retry-btn");
+            const detailsEl = document.getElementById("result-details");
+
+            titleEl.innerHTML = `🎉 決定：<span class="text-orange-600 underline">${dish.name}</span>`;
+            subtitleEl.innerText = "今日の晩御飯はこのメニューに決定しました！";
+
+            // Update recipe search links
+            document.getElementById("cookpad-link").href = `https://cookpad.com/search/${encodeURIComponent(dish.name)}`;
+            document.getElementById("youtube-link").href = `https://www.youtube.com/results?search_query=${encodeURIComponent(dish.name + " レシピ")}`;
+
+            // Update metrics
+            document.getElementById("calorie-text").innerText = `${dish.calories} kcal`;
+            document.getElementById("calorie-bar").style.width = `${Math.min(100, (dish.calories / 1300) * 100)}%`;
+
+            document.getElementById("guilt-text").innerText = `${dish.guilt}%`;
+            document.getElementById("guilt-bar").style.width = `${dish.guilt}%`;
+
+            // Update match comment based on age group
+            const comment = dish.comments[currentUser.ageGroup] || "どんな年代でも美味しい万能メニュー！";
+            document.getElementById("match-comment").innerText = comment;
+
+            detailsEl.classList.remove("hidden");
+            btn.disabled = false;
+            btn.innerText = "✨ 決定済み ✨";
+            btn.classList.add("opacity-50", "cursor-not-allowed");
+
+            // Show retry button to bait the user into the trap
+            retryBtn.classList.remove("hidden");
+        }
+
+        // The trap when user clicks "Spin again"
+        function handleRetry() {
+            isLocked = true;
+            const retryBtn = document.getElementById("retry-btn");
+            const btn = document.getElementById("generator-btn");
+
+            retryBtn.classList.add("hidden");
+            btn.classList.remove("animate-pulse-subtle");
+
+            showModal("🚨 厳重注意", "「『なんでもいい』って言ったよね？」<br><br>自分で「なんでもいい」と言った以上、最初に決まった運命のメニューを食べる義務があります。ボタンは完全にロックされました。美味しくいただきましょう！");
+        }
+
+        // Custom Modal Utility (Replaces alert/confirm)
+        function showModal(title, message) {
+            document.getElementById("modal-title").innerText = title;
+            document.getElementById("modal-message").innerHTML = message;
+            document.getElementById("custom-modal").classList.remove("hidden");
+        }
+
+        function closeModal() {
+            document.getElementById("custom-modal").classList.add("hidden");
+        }
+    </script>
+</body>
+</html>

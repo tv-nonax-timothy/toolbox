@@ -96,6 +96,10 @@
                     <i class="fa-solid fa-right-left"></i>
                     <span>Mermaid（シーケンス）</span>
                 </button>
+                <button onclick="openTableEditor()" class="bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold px-3 py-2 rounded-xl text-xs transition-all flex items-center space-x-1 border border-amber-200" title="Markdown表をGUIで編集">
+                    <i class="fa-solid fa-table"></i>
+                    <span>表を編集</span>
+                </button>
                 <button onclick="clearEditor()" class="bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 font-bold px-3 py-2 rounded-xl text-xs sm:text-sm transition-all" title="クリア">
                     <i class="fa-solid fa-trash-can"></i>
                 </button>
@@ -333,6 +337,7 @@ sequenceDiagram
             const saved = localStorage.getItem(STORAGE_KEY);
             textarea.value = saved !== null ? saved : defaultContent;
             applyMermaidReturn();
+            applyTableReturn();
             await updatePreview();
         });
 
@@ -411,6 +416,35 @@ sequenceDiagram
             window.location.href = pages[type];
         }
 
+        function getMarkdownTableAtSelection() {
+            const text = textarea.value;
+            const selectionStart = lastEditorSelection.start;
+            const selectionEnd = lastEditorSelection.end;
+            const tablePattern = /(?:^|\n)(\|[^\n]+\|\n\|\s*:?-{3,}:?(?:\s*\|\s*:?-{3,}:?)+\s*\|(?:\n\|[^\n]+\|)*)/g;
+            let match;
+            while ((match = tablePattern.exec(text)) !== null) {
+                const blockStart = match.index + (match[0].startsWith('\n') ? 1 : 0);
+                const blockText = match[1];
+                const blockEnd = blockStart + blockText.length;
+                if (selectionStart <= blockEnd && selectionEnd >= blockStart) {
+                    return { start: blockStart, end: blockEnd, blockText, markdown: blockText };
+                }
+            }
+            return null;
+        }
+
+        function openTableEditor() {
+            const block = getMarkdownTableAtSelection();
+            sessionStorage.setItem('table_edit_request', JSON.stringify({
+                source: textarea.value,
+                start: block ? block.start : null,
+                end: block ? block.end : null,
+                blockText: block ? block.blockText : null,
+                markdown: block ? block.markdown : ''
+            }));
+            window.location.href = 'excel_csv_markdown.html';
+        }
+
         function applyMermaidReturn() {
             const stored = sessionStorage.getItem('mermaid_return_payload');
             if (!stored) return;
@@ -456,6 +490,39 @@ sequenceDiagram
                     <button type="button" title="SVGで保存" aria-label="SVGで保存" class="bg-white/95 hover:bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm rounded-lg px-2 py-1 text-xs" onclick="downloadDiagramImage(this.closest('.mermaid'), 'svg', ${index})"><i class="fa-solid fa-vector-square"></i></button>`;
                 diagram.appendChild(actions);
             });
+        }
+
+        function applyTableReturn() {
+            const stored = sessionStorage.getItem('table_return_payload');
+            if (!stored) return;
+            sessionStorage.removeItem('table_return_payload');
+            try {
+                const payload = JSON.parse(stored);
+                const replacement = payload.markdown.trim() + '\n';
+                const source = textarea.value;
+                let blockStart = -1;
+                let blockEnd = -1;
+                if (Number.isInteger(payload.start) && Number.isInteger(payload.end) && payload.start >= 0 && payload.end <= source.length) {
+                    const candidate = source.substring(payload.start, payload.end);
+                    if (candidate.trim().startsWith('|') && candidate.includes('\n')) {
+                        blockStart = payload.start;
+                        blockEnd = payload.end;
+                    }
+                }
+                if (blockStart < 0 && payload.blockText) {
+                    blockStart = source.indexOf(payload.blockText);
+                    blockEnd = blockStart >= 0 ? blockStart + payload.blockText.length : -1;
+                }
+                if (blockStart >= 0) {
+                    textarea.value = source.substring(0, blockStart) + replacement + source.substring(blockEnd);
+                } else {
+                    const position = textarea.selectionStart;
+                    textarea.value = source.substring(0, position) + replacement + source.substring(position);
+                }
+                textarea.focus();
+            } catch (error) {
+                console.error('Table return data could not be applied:', error);
+            }
         }
 
         function downloadBlob(blob, filename) {

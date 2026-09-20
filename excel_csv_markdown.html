@@ -36,6 +36,11 @@
     <style>
         body { font-family: 'M PLUS Rounded 1p', sans-serif; background-color: #f8fafc; color: #1e293b; }
         textarea { font-family: 'JetBrains Mono', monospace; }
+        .grid-table { border-collapse: separate; border-spacing: 0; min-width: 100%; }
+        .grid-table th, .grid-table td { border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; padding: 0.5rem; }
+        .grid-table th:first-child, .grid-table td:first-child { border-left: 1px solid #e2e8f0; }
+        .grid-table thead th { border-top: 1px solid #e2e8f0; background: #f8fafc; }
+        .grid-table input { min-width: 8rem; width: 100%; background: transparent; outline: none; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -56,6 +61,8 @@
 
             <div class="flex items-center space-x-3">
                 <span id="status-msg" class="text-xs text-slate-400 font-medium hidden sm:inline"><i class="fa-solid fa-check text-brand-500 mr-1"></i>準備完了</span>
+                <button onclick="sendToMarkdown()" class="bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold px-3 py-2 rounded-xl text-xs sm:text-sm transition-all border border-sky-200"><i class="fa-solid fa-arrow-up-right-from-square mr-1"></i>Markdownメモへ送る</button>
+                <button onclick="returnToMarkdown()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold px-3 py-2 rounded-xl text-xs sm:text-sm transition-all"><i class="fa-solid fa-arrow-left mr-1"></i>Markdownメモに戻る</button>
                 <button onclick="loadSample()" class="bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold px-3.5 py-2 rounded-xl text-xs sm:text-sm transition-all flex items-center space-x-1.5 border border-brand-200">
                     <i class="fa-solid fa-wand-magic-sparkles"></i>
                     <span>サンプル読込</span>
@@ -64,10 +71,10 @@
         </div>
     </header>
 
-    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-6 relative lg:h-[calc(100vh-6rem)]">
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-2 gap-6 relative">
         
         <!-- Left Pane: Excel / CSV Input -->
-        <div class="w-full lg:w-1/2 flex flex-col bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden lg:h-full">
+        <div class="w-full lg:w-full flex flex-col bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden min-h-[32rem]">
             <div class="bg-slate-50 px-5 py-3 border-b border-slate-200 flex items-center justify-between shrink-0">
                 <span class="text-xs font-bold text-slate-600 flex items-center space-x-2">
                     <i class="fa-solid fa-file-excel text-brand-600"></i>
@@ -79,12 +86,16 @@
             </div>
             <textarea id="input-text" oninput="convertTable()" placeholder="ExcelやGoogleスプレッドシートからコピーした表（タブ区切り）をここに貼り付けてください... (Ctrl + V)" class="flex-grow w-full p-5 text-sm sm:text-base resize-none focus:outline-none min-h-[300px] lg:min-h-0 leading-relaxed overflow-y-auto"></textarea>
             <div class="px-5 py-2.5 bg-slate-50 border-t border-slate-100 text-xs text-slate-400 flex items-center justify-between">
-                <span>💡 Excelのセルをそのままコピー＆ペーストできます</span>
+                <div class="flex flex-wrap gap-4">
+                    <label class="inline-flex items-center gap-2 text-slate-600 cursor-pointer"><input id="omit-blank-rows" type="checkbox" onchange="convertTable()" class="accent-emerald-600"><span>空白行を除外</span></label>
+                    <label class="inline-flex items-center gap-2 text-slate-600 cursor-pointer"><input id="omit-blank-columns" type="checkbox" onchange="convertTable()" class="accent-emerald-600"><span>空白列を除外</span></label>
+                </div>
+                <span>💡 空白セルの位置・列数は維持されます</span>
             </div>
         </div>
 
         <!-- Right Pane: Markdown Output -->
-        <div class="w-full lg:w-1/2 flex flex-col bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden lg:h-full">
+        <div class="w-full lg:w-full flex flex-col bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden min-h-[32rem]">
             <div class="bg-slate-50 px-5 py-3 border-b border-slate-200 flex items-center justify-between shrink-0">
                 <span class="text-xs font-bold text-slate-600 flex items-center space-x-2">
                     <i class="fa-solid fa-code text-sky-500"></i>
@@ -102,98 +113,168 @@
             </div>
         </div>
 
+        <div class="w-full lg:col-span-2 bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="bg-slate-50 px-5 py-3 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
+                <span class="text-xs font-bold text-slate-600"><i class="fa-solid fa-table-cells text-brand-600 mr-2"></i>グリッド編集</span>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="addRow()" class="border border-slate-300 bg-white hover:bg-slate-100 px-3 py-1.5 rounded-lg text-xs"><i class="fa-solid fa-plus mr-1"></i>行追加</button>
+                    <button onclick="addColumn()" class="border border-slate-300 bg-white hover:bg-slate-100 px-3 py-1.5 rounded-lg text-xs"><i class="fa-solid fa-plus mr-1"></i>列追加</button>
+                    <button onclick="deleteSelectedRows()" class="border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 px-3 py-1.5 rounded-lg text-xs"><i class="fa-solid fa-minus mr-1"></i>選択行を削除</button>
+                    <button onclick="deleteSelectedColumns()" class="border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 px-3 py-1.5 rounded-lg text-xs"><i class="fa-solid fa-minus mr-1"></i>選択列を削除</button>
+                </div>
+            </div>
+            <div id="grid-container" class="overflow-auto max-h-[26rem] p-4"></div>
+            <div class="px-5 py-2.5 bg-slate-50 border-t border-slate-100 text-xs text-slate-500 flex justify-between"><span>行・列の見出しをクリックして選択。列ヘッダーを再クリックで降順ソートできます</span><span id="selection-info"></span></div>
+        </div>
+
+        <div class="w-full lg:col-span-2 bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="bg-slate-50 px-5 py-3 border-b border-slate-200 flex items-center justify-between"><span class="text-xs font-bold text-slate-600"><i class="fa-solid fa-file-export text-sky-500 mr-2"></i>Excel貼り付け用タブ区切りテキスト</span><button onclick="copyTabText()" class="text-xs font-bold text-slate-600 hover:text-brand-600"><i class="fa-regular fa-copy mr-1"></i>コピー</button></div>
+            <textarea id="tab-output" readonly class="w-full h-40 p-5 text-sm resize-none focus:outline-none font-mono bg-slate-50/50" placeholder="グリッドの内容がタブ区切りで表示されます..."></textarea>
+        </div>
+
     </main>
 
     <script>
         const inputText = document.getElementById('input-text');
         const outputText = document.getElementById('output-text');
+        const tabOutput = document.getElementById('tab-output');
+        const gridContainer = document.getElementById('grid-container');
         const statusMsg = document.getElementById('status-msg');
         const statsInfo = document.getElementById('stats-info');
+        const selectionInfo = document.getElementById('selection-info');
+        const omitBlankRows = document.getElementById('omit-blank-rows');
+        const omitBlankColumns = document.getElementById('omit-blank-columns');
+        let tableData = [];
+        let selectedRow = null;
+        let selectedColumn = null;
+        let sortColumn = null;
+        let sortDirection = 'asc';
+        let draggedRow = null;
+        let draggedColumn = null;
+        let tableEditRequest = null;
 
-        function convertTable() {
-            const raw = inputText.value.trim();
-            if (!raw) {
-                outputText.value = '';
-                statsInfo.textContent = '行: 0 / 列: 0';
-                statusMsg.innerHTML = '<i class="fa-solid fa-check text-brand-500 mr-1"></i>準備完了';
-                return;
-            }
+        function normalizeRows(rows) {
+            const columnCount = rows.reduce((max, row) => Math.max(max, row.length), 0);
+            return rows.map(row => Array.from({ length: columnCount }, (_, index) => String(row[index] ?? '').trim()));
+        }
 
-            // Split into rows by newline
-            const lines = raw.split(/\r?\n/).map(line => line.split('\t'));
-            
-            if (lines.length === 0 || (lines.length === 1 && lines[0].length === 1 && lines[0][0] === '')) {
-                outputText.value = '';
-                statsInfo.textContent = '行: 0 / 列: 0';
-                return;
-            }
+        function setTableData(rows) {
+            tableData = normalizeRows(rows).filter(row => row.some(cell => cell !== ''));
+            if (!tableData.length) tableData = [['']];
+            selectedRow = null;
+            selectedColumn = null;
+            sortColumn = null;
+            sortDirection = 'asc';
+            renderTable();
+        }
 
-            // Determine max columns
-            let maxCols = 0;
-            lines.forEach(row => {
-                if (row.length > maxCols) maxCols = row.length;
-            });
+        function parseTabText(text) {
+            return normalizeRows(text.trim().split(/\r?\n/).map(line => line.split('\t')));
+        }
 
-            // Normalize row lengths
-            const normalizedRows = lines.map(row => {
-                while (row.length < maxCols) {
-                    row.push('');
-                }
-                return row.map(cell => cell.trim().replace(/\|/g, '\\|')); // escape pipes if any
-            });
+        function parseMarkdownTable(markdown) {
+            const lines = markdown.trim().split(/\r?\n/).filter(line => line.trim().startsWith('|'));
+            if (lines.length < 2) throw new Error('Markdownテーブルを読み取れませんでした');
+            const rows = lines.map(line => line.trim().replace(/^\||\|$/g, '').split('|').map(cell => cell.trim().replace(/\\\|/g, '|')));
+            const separator = /^\s*:?-{3,}:?\s*$/;
+            const separatorIndex = rows.findIndex(row => row.every(cell => separator.test(cell)));
+            if (separatorIndex < 0) throw new Error('Markdownテーブルの区切り行が見つかりません');
+            rows.splice(separatorIndex, 1);
+            return normalizeRows(rows);
+        }
 
-            const rowCount = normalizedRows.length;
-            const colCount = maxCols;
+        function escapeMarkdownCell(cell) {
+            return String(cell ?? '').replace(/\|/g, '\\|').replace(/\r?\n/g, ' ');
+        }
 
-            // Build Markdown table
-            let mdLines = [];
+        function generateMarkdown() {
+            if (!tableData.length) return '';
+            const header = tableData[0].map(escapeMarkdownCell);
+            const lines = ['| ' + header.join(' | ') + ' |', '| ' + header.map(() => '---').join(' | ') + ' |'];
+            tableData.slice(1).forEach(row => lines.push('| ' + row.map(escapeMarkdownCell).join(' | ') + ' |'));
+            return lines.join('\n');
+        }
 
-            // Header row
-            const header = normalizedRows[0];
-            mdLines.push('| ' + header.join(' | ') + ' |');
+        function generateTabText() {
+            return tableData.map(row => row.join('\t')).join('\n');
+        }
 
-            // Separator row (default left align)
-            const separator = header.map(() => '---');
-            mdLines.push('| ' + separator.join(' | ') + ' |');
-
-            // Body rows
-            for (let i = 1; i < rowCount; i++) {
-                mdLines.push('| ' + normalizedRows[i].join(' | ') + ' |');
-            }
-
-            outputText.value = mdLines.join('\n');
-            statsInfo.textContent = `行: ${rowCount} / 列: ${colCount}`;
+        function syncOutputs() {
+            inputText.value = generateTabText();
+            outputText.value = generateMarkdown();
+            tabOutput.value = generateTabText();
+            statsInfo.textContent = `行: ${tableData.length} / 列: ${tableData[0]?.length || 0}`;
             statusMsg.innerHTML = '<i class="fa-solid fa-check text-brand-500 mr-1"></i>変換成功';
         }
 
-        function loadSample() {
-            inputText.value = `アイテム名\t種類\t数量\t価格\nポーション\t消耗品\t10\t150G\n鉄の剣\t武器\t1\t1200G\nマジカルスタッフ\t武器\t1\t3500G`;
-            convertTable();
+        function renderTable() {
+            const columnCount = tableData[0]?.length || 0;
+            const controls = Array.from({ length: columnCount }, (_, index) => `<th draggable="true" onclick="selectColumn(${index})" ondragstart="dragColumnStart(event, ${index})" ondragover="dragColumnOver(event)" ondrop="dropColumn(event, ${index})" class="${selectedColumn === index ? 'bg-sky-100' : ''} cursor-pointer"><button type="button" onclick="event.stopPropagation(); sortByColumn(${index})" class="font-bold text-xs ${selectedColumn === index ? 'text-sky-700' : 'text-slate-600'} hover:text-brand-600">列 ${index + 1}${sortColumn === index ? (sortDirection === 'asc' ? ' ↑' : ' ↓') : ''}</button></th>`).join('');
+            const header = tableData[0] || [];
+            const headerCells = header.map((cell, columnIndex) => `<th class="${selectedColumn === columnIndex ? 'bg-sky-100' : 'bg-slate-50'}"><input value="${escapeAttribute(cell)}" oninput="updateCell(0, ${columnIndex}, this.value)" class="font-bold text-xs"></th>`).join('');
+            const body = tableData.slice(1).map((row, bodyIndex) => { const rowIndex = bodyIndex + 1; return `<tr draggable="true" ondragstart="dragRowStart(event, ${rowIndex})" ondragover="dragRowOver(event)" ondrop="dropRow(event, ${rowIndex})" class="${selectedRow === rowIndex ? 'bg-amber-50' : ''}"><th onclick="selectRow(${rowIndex})" class="${selectedRow === rowIndex ? 'bg-amber-200 text-amber-800' : 'bg-slate-50 text-slate-600'} cursor-pointer font-bold text-xs">行 ${bodyIndex + 1}</th>${row.map((cell, columnIndex) => `<td class="${selectedRow === rowIndex || selectedColumn === columnIndex ? (selectedRow === rowIndex && selectedColumn === columnIndex ? 'bg-amber-100' : selectedRow === rowIndex ? 'bg-amber-50' : 'bg-sky-50') : ''}"><input value="${escapeAttribute(cell)}" oninput="updateCell(${rowIndex}, ${columnIndex}, this.value)"></td>`).join('')}</tr>`; }).join('');
+            gridContainer.innerHTML = `<table class="grid-table text-sm"><thead><tr><th class="w-16">#</th>${controls}</tr><tr><th class="bg-slate-100 text-xs">見出し</th>${headerCells}</tr></thead><tbody>${body}</tbody></table>`;
+            syncOutputs();
+            selectionInfo.textContent = selectedRow !== null ? `選択行: ${selectedRow + 1}` : selectedColumn !== null ? `選択列: ${selectedColumn + 1}` : '未選択';
         }
 
-        function clearInput() {
-            inputText.value = '';
-            convertTable();
+        function escapeAttribute(value) {
+            return String(value ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
         }
 
-        function copyOutput() {
-            const text = outputText.value;
-            if (!text) return;
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand("copy");
-            document.body.removeChild(textArea);
-            
-            statusMsg.innerHTML = '<i class="fa-solid fa-copy text-brand-500 mr-1"></i>コピーしました！';
-            setTimeout(() => {
-                statusMsg.innerHTML = '<i class="fa-solid fa-check text-brand-500 mr-1"></i>変換成功';
-            }, 2000);
+        function updateCell(row, column, value) { tableData[row][column] = value; syncOutputs(); }
+        function selectRow(index) { selectedRow = index; selectedColumn = null; renderTable(); }
+        function selectColumn(index) { selectedColumn = index; selectedRow = null; renderTable(); }
+        function addRow() { tableData.push(Array.from({ length: tableData[0]?.length || 1 }, () => '')); renderTable(); }
+        function addColumn() { tableData.forEach(row => row.push('')); renderTable(); }
+        function deleteSelectedRows() { if (selectedRow === null) return; tableData.splice(selectedRow, 1); selectedRow = null; if (!tableData.length) tableData = [['']]; renderTable(); }
+        function deleteSelectedColumns() { if (selectedColumn === null || !tableData[0]?.length) return; tableData.forEach(row => row.splice(selectedColumn, 1)); selectedColumn = null; if (!tableData[0].length) tableData = [['']]; renderTable(); }
+        function sortByColumn(column) { if (sortColumn === column) sortDirection = sortDirection === 'asc' ? 'desc' : 'asc'; else { sortColumn = column; sortDirection = 'asc'; } const header = tableData[0]; const body = tableData.slice(1).sort((left, right) => { const result = String(left[column] ?? '').localeCompare(String(right[column] ?? ''), 'ja', { numeric: true }); return sortDirection === 'asc' ? result : -result; }); tableData = [header, ...body]; renderTable(); }
+        function dragRowStart(event, index) { draggedRow = index; event.dataTransfer.effectAllowed = 'move'; }
+        function dragRowOver(event) { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; }
+        function dropRow(event, target) { event.preventDefault(); if (draggedRow === null || draggedRow === target) return; const [row] = tableData.splice(draggedRow, 1); tableData.splice(target, 0, row); draggedRow = null; renderTable(); }
+        function dragColumnStart(event, index) { draggedColumn = index; event.dataTransfer.effectAllowed = 'move'; }
+        function dragColumnOver(event) { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; }
+        function dropColumn(event, target) { event.preventDefault(); if (draggedColumn === null || draggedColumn === target) return; tableData.forEach(row => { const [cell] = row.splice(draggedColumn, 1); row.splice(target, 0, cell); }); draggedColumn = null; renderTable(); }
+
+        function convertTable() {
+            const raw = inputText.value;
+            if (!raw.trim()) { setTableData([['']]); outputText.value = ''; tabOutput.value = ''; statsInfo.textContent = '行: 0 / 列: 0'; statusMsg.innerHTML = '<i class="fa-solid fa-check text-brand-500 mr-1"></i>準備完了'; return; }
+            let rows = parseTabText(raw);
+            if (omitBlankRows.checked) {
+                rows = rows.filter(row => row.some(cell => cell.trim() !== ''));
+            }
+            if (omitBlankColumns.checked && rows.length) {
+                const normalizedRows = normalizeRows(rows);
+                const keepColumns = normalizedRows[0].map((_, columnIndex) => normalizedRows.some(row => row[columnIndex].trim() !== ''));
+                rows = normalizedRows.map(row => row.filter((_, columnIndex) => keepColumns[columnIndex]));
+            }
+            setTableData(rows);
         }
+
+        function loadSample() { inputText.value = `アイテム名\t種類\t数量\t価格\nポーション\t消耗品\t10\t150G\n鉄の剣\t武器\t1\t1200G\nマジカルスタッフ\t武器\t1\t3500G`; convertTable(); }
+        function clearInput() { inputText.value = ''; setTableData([['']]); convertTable(); }
+        function copyOutput() { copyText(outputText.value, 'Markdownをコピーしました！'); }
+        function copyTabText() { copyText(tabOutput.value, 'タブ区切りテキストをコピーしました！'); }
+        function copyText(text, message) { if (!text) return; navigator.clipboard?.writeText(text).catch(() => {}); statusMsg.innerHTML = `<i class="fa-solid fa-copy text-brand-500 mr-1"></i>${message}`; }
+
+        function sendToMarkdown() {
+            const request = tableEditRequest || JSON.parse(sessionStorage.getItem('table_edit_request') || '{}');
+            sessionStorage.setItem('table_return_payload', JSON.stringify({ markdown: generateMarkdown(), source: request.source || null, start: request.start ?? null, end: request.end ?? null, blockText: request.blockText || null }));
+            window.location.href = 'markdown_memo.html';
+        }
+
+        function returnToMarkdown() { sessionStorage.removeItem('table_edit_request'); sessionStorage.removeItem('table_return_payload'); window.location.href = 'markdown_memo.html'; }
 
         window.addEventListener('DOMContentLoaded', () => {
-            loadSample();
+            const request = JSON.parse(sessionStorage.getItem('table_edit_request') || 'null');
+            if (request?.markdown) {
+                tableEditRequest = request;
+                inputText.value = request.markdown;
+                setTableData(parseMarkdownTable(request.markdown));
+            } else {
+                loadSample();
+            }
         });
     </script>
 </body>

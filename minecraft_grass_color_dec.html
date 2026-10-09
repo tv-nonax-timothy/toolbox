@@ -181,9 +181,17 @@
                     <h2 class="text-sm font-bold flex items-center gap-2 text-slate-900 dark:text-white">
                         <i class="fa-solid fa-eye text-brand-600 dark:text-brand-500"></i> リアルタイムプレビュー & シミュレーション
                     </h2>
-                    <span id="imageDimensions" class="text-xs font-mono bg-slate-100 dark:bg-slate-700/60 px-2.5 py-1 rounded-lg text-slate-600 dark:text-slate-300 self-start sm:self-auto">
-                        解像度: 未選択 (16x16 等)
-                    </span>
+                    <div class="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                        <div class="inline-flex rounded-lg border border-slate-200 dark:border-slate-600 p-0.5" role="group" aria-label="画像の表示倍率">
+                            <button type="button" class="preview-scale-btn rounded-md bg-brand-600 px-2 py-1 text-xs font-medium text-white transition" data-scale="1" aria-pressed="true">等倍</button>
+                            <button type="button" class="preview-scale-btn rounded-md px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 transition" data-scale="2" aria-pressed="false">2倍</button>
+                            <button type="button" class="preview-scale-btn rounded-md px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 transition" data-scale="3" aria-pressed="false">3倍</button>
+                            <button type="button" class="preview-scale-btn rounded-md px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 transition" data-scale="4" aria-pressed="false">4倍</button>
+                        </div>
+                        <span id="imageDimensions" class="text-xs font-mono bg-slate-100 dark:bg-slate-700/60 px-2.5 py-1 rounded-lg text-slate-600 dark:text-slate-300">
+                            解像度: 未選択 (16x16 等)
+                        </span>
+                    </div>
                 </div>
 
                 <!-- プレビュー表示エリア（フレックス & 拡大対応 3カラムレイアウト） -->
@@ -192,8 +200,8 @@
                     <!-- 元画像 -->
                     <div class="flex flex-col items-center bg-slate-50/80 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700 justify-between">
                         <span class="text-xs font-medium text-slate-500 mb-3">1. 元のテクスチャ</span>
-                        <div class="w-full flex-grow flex items-center justify-center p-4 checkerboard rounded-xl overflow-hidden min-h-[180px] border border-slate-200 dark:border-slate-700 relative">
-                            <canvas id="origCanvas" class="max-w-full max-h-[220px] w-auto h-auto object-contain pixelated shadow-md"></canvas>
+                        <div class="w-full flex-grow flex items-center justify-center p-4 checkerboard rounded-xl overflow-auto min-h-[180px] border border-slate-200 dark:border-slate-700 relative">
+                            <canvas id="origCanvas" class="pixelated shadow-md"></canvas>
                             <div id="origPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 text-xs text-center p-4">
                                 <i class="fa-regular fa-image text-2xl mb-2 opacity-50">></i>
                                 画像未選択
@@ -205,8 +213,8 @@
                     <div class="flex flex-col items-center bg-slate-50/80 dark:bg-slate-900/60 p-4 rounded-xl border-2 border-brand-500/60 dark:border-brand-500/60 relative shadow-sm justify-between">
                         <div class="absolute -top-3 bg-brand-500 text-white text-[10px] font-bold px-3 py-0.5 rounded-full shadow-sm">補正済み (出力用)</div>
                         <span class="text-xs font-medium text-brand-600 dark:text-brand-400 mb-3 mt-1">2. 逆算補正後テクスチャ</span>
-                        <div class="w-full flex-grow flex items-center justify-center p-4 checkerboard rounded-xl overflow-hidden min-h-[180px] border border-slate-200 dark:border-slate-700 relative">
-                            <canvas id="resultCanvas" class="max-w-full max-h-[220px] w-auto h-auto object-contain pixelated shadow-md"></canvas>
+                        <div class="w-full flex-grow flex items-center justify-center p-4 checkerboard rounded-xl overflow-auto min-h-[180px] border border-slate-200 dark:border-slate-700 relative">
+                            <canvas id="resultCanvas" class="pixelated shadow-md"></canvas>
                             <div id="resultPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 text-xs text-center p-4">
                                 <i class="fa-regular fa-image text-2xl mb-2 opacity-50"></i>
                                 画像未選択
@@ -217,8 +225,8 @@
                     <!-- シミュレーション（バイオーム適用後） -->
                     <div class="flex flex-col items-center bg-slate-50/80 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700 justify-between">
                         <span class="text-xs font-medium text-slate-500 mb-3">3. ゲーム内シミュレーション</span>
-                        <div class="w-full flex-grow flex items-center justify-center p-4 checkerboard rounded-xl overflow-hidden min-h-[180px] border border-slate-200 dark:border-slate-700 relative">
-                            <canvas id="simCanvas" class="max-w-full max-h-[220px] w-auto h-auto object-contain pixelated shadow-md"></canvas>
+                        <div class="w-full flex-grow flex items-center justify-center p-4 checkerboard rounded-xl overflow-auto min-h-[180px] border border-slate-200 dark:border-slate-700 relative">
+                            <canvas id="simCanvas" class="pixelated shadow-md"></canvas>
                             <div id="simPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 text-xs text-center p-4">
                                 <i class="fa-regular fa-image text-2xl mb-2 opacity-50"></i>
                                 画像未選択
@@ -285,12 +293,38 @@
         const origCanvas = document.getElementById('origCanvas');
         const resultCanvas = document.getElementById('resultCanvas');
         const simCanvas = document.getElementById('simCanvas');
+        const previewScaleButtons = document.querySelectorAll('.preview-scale-btn');
 
         const origPlaceholder = document.getElementById('origPlaceholder');
         const resultPlaceholder = document.getElementById('resultPlaceholder');
         const simPlaceholder = document.getElementById('simPlaceholder');
 
         let loadedImage = null;
+        let previewScale = 1;
+
+        function updatePreviewScale() {
+            if (loadedImage) {
+                [origCanvas, resultCanvas, simCanvas].forEach((canvas) => {
+                    canvas.style.width = `${canvas.width * previewScale}px`;
+                    canvas.style.height = `${canvas.height * previewScale}px`;
+                });
+            }
+
+            previewScaleButtons.forEach((button) => {
+                const isSelected = Number(button.dataset.scale) === previewScale;
+                button.setAttribute('aria-pressed', String(isSelected));
+                button.className = isSelected
+                    ? 'preview-scale-btn rounded-md bg-brand-600 px-2 py-1 text-xs font-medium text-white transition'
+                    : 'preview-scale-btn rounded-md px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 transition';
+            });
+        }
+
+        previewScaleButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                previewScale = Number(button.dataset.scale);
+                updatePreviewScale();
+            });
+        });
 
         // ドラッグ＆ドロップイベント
         dropZone.addEventListener('click', () => imageInput.click());
@@ -326,6 +360,10 @@
             ctx1.clearRect(0, 0, origCanvas.width, origCanvas.height);
             ctx2.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
             ctx3.clearRect(0, 0, simCanvas.width, simCanvas.height);
+            [origCanvas, resultCanvas, simCanvas].forEach((canvas) => {
+                canvas.style.removeProperty('width');
+                canvas.style.removeProperty('height');
+            });
 
             downloadBtn.disabled = true;
             downloadBtn.className = "w-full bg-slate-300 dark:bg-slate-700 text-slate-500 dark:text-slate-400 font-bold py-4 px-6 rounded-xl transition flex items-center justify-center gap-2 cursor-not-allowed shadow-sm";
@@ -412,6 +450,7 @@
             resultCanvas.height = height;
             simCanvas.width = width;
             simCanvas.height = height;
+            updatePreviewScale();
 
             const ctxOrig = origCanvas.getContext('2d');
             const ctxResult = resultCanvas.getContext('2d');

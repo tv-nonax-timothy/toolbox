@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nonax Building Pack - Minecraft Add-on</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        .hero-gradient {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.8) 100%);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-amber-500 selection:text-white">
+
+    <!-- ヘッダー -->
+    <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <span class="text-xl font-black tracking-wider text-amber-400">TV NONAX</span>
+                <span class="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">Bedrock Edition</span>
+            </div>
+            <a href="#download" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-lg text-sm transition shadow-lg shadow-amber-500/20">
+                ダウンロード
+            </a>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="max-w-5xl mx-auto px-4 py-12 space-y-16">
+
+        <!-- ヒーローセクション -->
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-2xl hero-gradient">
+            <div class="space-y-6">
+                <div class="inline-block px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold tracking-wide uppercase">
+                    Minecraft Bedrock Add-on
+                </div>
+                <h1 class="text-4xl md:text-5xl font-black tracking-tight text-white leading-tight">
+                    Nonax Building Pack
+                </h1>
+                <p class="text-slate-300 text-base leading-relaxed">
+                    バニラの世界観を壊さない。まるで最初からそこにあったかのように建築の幅を広げる、こだわり派のためのブロック追加アドオン。
+                </p>
+                <div class="flex flex-wrap gap-4 pt-2">
+                    <a href="#download" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-6 py-3 rounded-xl transition flex items-center space-x-2 shadow-lg shadow-amber-500/20">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        <span>アドオンを入手する (.mcaddon)</span>
+                    </a>
+                </div>
+            </div>
+            <div class="flex justify-center">
+                <div class="relative group">
+                    <div class="absolute -inset-1 bg-gradient-to-r from-amber-500 to-yellow-300 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-300"></div>
+                    <img src="Nonax_Building_Pack.png" alt="Nonax Building Pack Icon" class="relative rounded-xl w-72 h-72 object-cover shadow-xl border border-slate-700">
+                </div>
+            </div>
+        </section>
+
+        <!-- コンセプト & スクリーンショット セクション -->
+        <section class="space-y-6">
+            <div class="text-center space-y-2">
+                <h2 class="text-2xl md:text-3xl font-black text-white">コンセプト & 特徴</h2>
+                <p class="text-slate-400 text-sm">「バニラにあっても不思議じゃない」を形にしました</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- 特徴1: レイヤーブロック -->
+                <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-6 flex flex-col justify-between space-y-4">
+                    <div class="space-y-3">
+                        <div class="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 font-bold text-lg">01</div>
+                        <h3 class="font-bold text-lg text-white">レイヤーブロック</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">
+                            わずか2ピクセル厚のブロック。縦にも横にも自由に積み重ねることができ、細やかな高さ調整や奥行きの表現が可能になります。
+                        </p>
+                    </div>
+                    <!-- サンプル画像 -->
+                    <div class="overflow-hidden rounded-lg border border-slate-700/60 bg-slate-950">
+                        <img src="ss_layer.png" alt="レイヤーブロックのスクリーンショット" class="w-full h-48 object-cover hover:scale-105 transition duration-300">
+                    </div>
+                </div>
+
+                <!-- 特徴2: 木材系の塀ブロック -->
+                <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-6 flex flex-col justify-between space-y-4">
+                    <div class="space-y-3">
+                        <div class="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 font-bold text-lg">02</div>
+                        <h3 class="font-bold text-lg text-white">木材系の塀ブロック</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">
+                            フェンス（柵）とは一味違う、建築の構造美を引き立てる木材ベースの「塀」ブロックを追加。より重厚感のある仕上がりに。
+                        </p>
+                    </div>
+                    <!-- サンプル画像 -->
+                    <div class="overflow-hidden rounded-lg border border-slate-700/60 bg-slate-950">
+                        <img src="ss_wall.png" alt="木材系の塀ブロックのスクリーンショット" class="w-full h-48 object-cover hover:scale-105 transition duration-300">
+                    </div>
+                </div>
+
+                <!-- 特徴3: ハーフ・階段の充実 -->
+                <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-6 flex flex-col justify-between space-y-4">
+                    <div class="space-y-3">
+                        <div class="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 font-bold text-lg">03</div>
+                        <h3 class="font-bold text-lg text-white">ハーフ・階段の充実</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">
+                            ガラスのハーフブロック・階段をはじめ、土や草ブロックのハーフブロックなど、バニラでは痒い所に手が届かなかったパーツを網羅。
+                        </p>
+                    </div>
+                    <!-- サンプル画像 -->
+                    <div class="overflow-hidden rounded-lg border border-slate-700/60 bg-slate-950">
+                        <img src="ss_slabs.png" alt="ハーフ・階段ブロックのスクリーンショット" class="w-full h-48 object-cover hover:scale-105 transition duration-300">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ダウンロードセクション -->
+        <section id="download" class="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center space-y-6">
+            <div class="max-w-xl mx-auto space-y-2">
+                <h2 class="text-2xl md:text-3xl font-black text-white">ダウンロード</h2>
+                <p class="text-slate-400 text-sm">Minecraft Bedrock Edition (統合版) 対応</p>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+                <a href="Nonax_Building_Pack.mcaddon" download class="w-full sm:w-auto bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-8 py-4 rounded-xl transition flex items-center justify-center space-x-3 shadow-lg shadow-amber-500/20">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    <span class="text-lg">Nonax_Building_Pack.mcaddon をダウンロード</span>
+                </a>
+            </div>
+
+            <div class="text-xs text-slate-500 pt-2 space-y-1">
+                <p>導入方法：ダウンロードしたファイルをダブルクリック（またはマイクラで開く）するだけでインポートできます。</p>
+                <p>※ワールドの設定で「実験的ゲームプレイ」の有効化は不要です。</p>

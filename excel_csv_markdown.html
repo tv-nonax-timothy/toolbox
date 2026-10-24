@@ -169,7 +169,87 @@
         }
 
         function parseTabText(text) {
-            return normalizeRows(text.trim().split(/\r?\n/).map(line => line.split('\t')));
+            const source = text.trim();
+            if (!source) return [['']];
+            
+            const rows = [];
+            let row = [];
+            let cell = '';
+
+            for (let index = 0; index < source.length; index++) {
+                const charactor = source[index];
+                
+                // タブ区切り（列の境界）
+                if (charactor === '\t') {
+                    row.push(cell);
+                    cell = '';
+                } 
+                // 改行（行の境界）← CRLF、LF、CR のいずれかで改行と判断
+                else if (charactor === '\n' || charactor === '\r') {
+                    row.push(cell);
+                    rows.push(row);
+                    row = [];
+                    cell = '';
+                    
+                    // CRLF（\r\n）の場合は、次の \n をスキップ
+                    if (charactor === '\r' && source[index + 1] === '\n') {
+                        index++;
+                    }
+                } 
+                // 通常文字（クォートも含む）
+                else {
+                    cell += charactor;    // ✅ クォートもそのまま保持
+                }
+            }
+            
+            // 最後のセルと行を追加
+            if (cell !== '' || row.length > 0) {
+                row.push(cell);
+                rows.push(row);
+            }
+            
+            return normalizeRows(rows).filter(row => row.some(cell => cell !== ''));
+        }
+
+
+
+        function XXparseTabText(text) {
+            const source = text.trim();
+            const rows =[];
+            let row = [];
+            let cell = '';
+            let inQuotes = false;
+
+            for (let index = 0; index < source.length; index++) {
+                const charactor = source[index];
+                if (charactor === '"') {
+                    if (inQuotes && source[index + 1] === '"') {
+                        cell += '"';
+                        index++; // Skip next quote
+                    } else if (inQuotes) {
+                        inQuotes = false;
+                    } else if (cell === '')   {
+                        inQuotes = true;
+                    } else {
+                        cell += charactor;
+                    }
+                } else if (!inQuotes && charactor === '\t' ) {
+                    row.push(cell);
+                    cell = '';
+                } else if (!inQuotes && (charactor === '\r' || charactor === '\n')) {
+                    row.push(cell);
+                    rows.push(row);
+                    row = [];
+                    cell = '';
+                    if (charactor === '\r' && source[index + 1] === '\n') index++;
+                } else {
+                    cell += charactor;
+                }
+            }
+            // Add the last cell and row
+            row.push(cell);
+            rows.push(row);
+            return normalizeRows(rows);
         }
 
         function parseMarkdownTable(markdown) {
@@ -184,7 +264,7 @@
         }
 
         function escapeMarkdownCell(cell) {
-            return String(cell ?? '').replace(/\|/g, '\\|').replace(/\r?\n/g, ' ');
+            return String(cell ?? '').replace(/\|/g, '\\|').replace(/\n/g, '<br>');
         }
 
         function generateMarkdown() {

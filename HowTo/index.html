@@ -3,246 +3,344 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GitHub Copilot マルチエージェント開発アーキテクチャ - TVのなっくすの道具箱</title>
+  <title>GitHub Copilot マルチエージェント開発ガイド - TVのなっくすの道具箱</title>
   <style>
     :root {
-      --bg-color: #0d1117;
-      --card-bg: #161b22;
-      --border-color: #30363d;
-      --text-color: #c9d1d9;
-      --heading-color: #58a6ff;
-      --accent-color: #238636;
-      --sub-text: #8b949e;
-      --code-bg: #1f242c;
+      --bg-color: #f7f9fc;
+      --card-bg: #ffffff;
+      --primary-color: #4a7c59; /* 温かみのあるグリーン */
+      --primary-light: #eaf2eb;
+      --accent-color: #e07a5f;  /* アクセントのテラコッタ */
+      --text-main: #2b2d42;
+      --text-sub: #6c757d;
+      --border-color: #e9ecef;
+      --code-bg: #2d3748;
+      --code-text: #edf2f7;
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
       background-color: var(--bg-color);
-      color: var(--text-color);
-      line-height: 1.6;
+      color: var(--text-main);
+      line-height: 1.7;
       margin: 0;
       padding: 0;
     }
 
     header {
-      background-color: var(--card-bg);
-      border-bottom: 1px solid var(--border-color);
-      padding: 2rem 1rem;
+      background: linear-gradient(135deg, #6b9080 0%, #a4c3b2 100%);
+      color: white;
+      padding: 2.5rem 1rem 2rem;
       text-align: center;
+      border-bottom-left-radius: 20px;
+      border-bottom-right-radius: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
 
     header h1 {
-      color: var(--heading-color);
       margin: 0 0 0.5rem 0;
       font-size: 1.8rem;
+      font-weight: 700;
     }
 
     header p {
-      color: var(--sub-text);
       margin: 0;
+      opacity: 0.95;
+      font-size: 0.95rem;
     }
 
     .container {
-      max-width: 1000px;
-      margin: 2rem auto;
+      max-width: 960px;
+      margin: 1.5rem auto 3rem;
       padding: 0 1rem;
-    }
-
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 1.5rem;
-      margin-bottom: 2rem;
-    }
-
-    h2 {
-      color: var(--heading-color);
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 0.5rem;
-      margin-top: 0;
-    }
-
-    h3 {
-      color: #79c0ff;
-      margin-top: 1.5rem;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 1rem 0;
-    }
-
-    th, td {
-      border: 1px solid var(--border-color);
-      padding: 0.75rem;
-      text-align: left;
-    }
-
-    th {
-      background-color: rgba(56, 139, 253, 0.1);
-      color: var(--heading-color);
-    }
-
-    .badge-sonnet {
-      background: #388bfd33;
-      color: #58a6ff;
-      padding: 0.2rem 0.5rem;
-      border-radius: 4px;
-      font-size: 0.85rem;
-    }
-
-    .badge-gpt4o {
-      background: #23863633;
-      color: #7ee787;
-      padding: 0.2rem 0.5rem;
-      border-radius: 4px;
-      font-size: 0.85rem;
-    }
-
-    .badge-serial {
-      background: #a371f733;
-      color: #d2a8ff;
-      padding: 0.2rem 0.5rem;
-      border-radius: 4px;
-      font-size: 0.85rem;
-    }
-
-    .badge-parallel {
-      background: #d2992233;
-      color: #f2cc60;
-      padding: 0.2rem 0.5rem;
-      border-radius: 4px;
-      font-size: 0.85rem;
-    }
-
-    pre {
-      background-color: var(--code-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      padding: 1rem;
-      overflow-x: auto;
-      font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
-      font-size: 0.9rem;
     }
 
     .nav-back {
       display: inline-block;
-      margin-bottom: 1rem;
-      color: var(--heading-color);
+      margin-bottom: 1.2rem;
+      color: var(--primary-color);
       text-decoration: none;
+      font-weight: bold;
+      font-size: 0.95rem;
+      transition: transform 0.2s;
     }
 
     .nav-back:hover {
-      text-decoration: underline;
+      transform: translateX(-3px);
+    }
+
+    /* ダウンロードバナー */
+    .download-card {
+      background: linear-gradient(135deg, #fff3bf 0%, #ffe066 100%);
+      border: 2px dashed #fcc419;
+      border-radius: 16px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+    }
+
+    .download-info h3 {
+      margin: 0 0 0.25rem 0;
+      color: #d9480f;
+      font-size: 1.1rem;
+    }
+
+    .download-info p {
+      margin: 0;
+      font-size: 0.88rem;
+      color: #495057;
+    }
+
+    .btn-download {
+      background-color: #f76707;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 30px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 0.95rem;
+      box-shadow: 0 4px 8px rgba(247, 103, 7, 0.3);
+      transition: all 0.2s ease;
+      display: inline-block;
+    }
+
+    .btn-download:hover {
+      background-color: #d9480f;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(247, 103, 7, 0.4);
+    }
+
+    /* コンテンツカード */
+    .card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 1.75rem;
+      margin-bottom: 1.75rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+      border: 1px solid var(--border-color);
+    }
+
+    h2 {
+      color: var(--primary-color);
+      font-size: 1.35rem;
+      margin-top: 0;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 2px solid var(--primary-light);
+      padding-bottom: 0.5rem;
+    }
+
+    p, li {
+      color: #343a40;
+      font-size: 0.95rem;
+    }
+
+    ul {
+      padding-left: 1.2rem;
+    }
+
+    li {
+      margin-bottom: 0.4rem;
+    }
+
+    /* テーブルデザイン */
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      padding: 0.85rem 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+      background-color: var(--primary-light);
+      color: var(--primary-color);
+      font-weight: bold;
+    }
+
+    tr:first-child th:first-child { border-top-left-radius: 8px; }
+    tr:first-child th:last-child { border-top-right-radius: 8px; }
+
+    /* バッジ */
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 12px;
+      font-size: 0.78rem;
+      font-weight: bold;
+    }
+
+    .badge-sonnet { background: #e7f5ff; color: #1971c2; }
+    .badge-gpt4o  { background: #ebfbee; color: #2b8a3e; }
+    .badge-serial { background: #f3f0ff; color: #6741d9; }
+    .badge-parallel { background: #fff9db; color: #f59f00; }
+    .badge-readonly { background: #f1f3f5; color: #495057; }
+
+    /* コードブロック */
+    pre {
+      background-color: var(--code-bg);
+      color: var(--code-text);
+      border-radius: 10px;
+      padding: 1.2rem;
+      overflow-x: auto;
+      font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    code {
+      background-color: #e9ecef;
+      color: #c92a2a;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.88rem;
+      font-family: SFMono-Regular, Consolas, monospace;
+    }
+
+    pre code {
+      background-color: transparent;
+      color: inherit;
+      padding: 0;
     }
 
     footer {
       text-align: center;
-      padding: 2rem 0;
-      color: var(--sub-text);
-      font-size: 0.9rem;
-      border-top: 1px solid var(--border-color);
+      padding: 2rem 1rem;
+      color: var(--text-sub);
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 600px) {
+      .download-card {
+        text-align: center;
+        justify-content: center;
+      }
+      .btn-download {
+        width: 100%;
+        text-align: center;
+      }
     }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>GitHub Copilot マルチエージェント開発アーキテクチャ</h1>
-    <p>リード＆サブエージェント連携による次世代ソフトウェア開発フレームワーク</p>
+    <h1>🤖 GitHub Copilot マルチエージェント開発ガイド</h1>
+    <p>リード＆サブエージェント連携で進める、チーム・個人向けの効率的な開発モデル</p>
   </header>
 
   <div class="container">
-    <a href="./index.html" class="nav-back">← TVのなっくすの道具箱 へ戻る</a>
+    <a href="../index.html" class="nav-back">← TVのなっくすの道具箱 トップへ戻る</a>
 
     <!-- コンセプト -->
     <div class="card">
-      <h2>1. アーキテクチャ・コンセプト</h2>
+      <h2>💡 アーキテクチャのコンセプト</h2>
       <p>
-        本プロジェクトは、GitHub Copilotのカスタムエージェント機能（<code>.github/agents/</code>）を活用し、
-        <strong>「堅牢なウォーターフォール型ドキュメント管理」</strong>と<strong>「迅速なアジャイル並列実装」</strong>を融合させた開発フレームワークです。
+        GitHub Copilotのカスタムエージェント機能（<code>.github/agents/</code>）を活用し、
+        <strong>「堅牢なドキュメント管理」</strong>と<strong>「柔軟な並列AI実装」</strong>を両立させた構成です。
       </p>
       <ul>
-        <li><strong>適材適所のモデル選定:</strong> 高度な推論やコンテキスト理解が必要な上流・設計工程には <code>Claude 3.5 Sonnet</code> を、スピードと実装精度が求められる製造工程には <code>GPT-4o</code> を割り当て最適化。</li>
-        <li><strong>直列・並列のハイブリッド制御:</strong> 整合性が重要な要件・外部設計は単一エージェントで直列に、独立した機能開発（内部設計・実装）は複数サブエージェントで同時並行処理。</li>
-        <li><strong>明確なコンテキスト分離:</strong> エージェントごとに読み書き権限と参照ドキュメントを分離し、コンテキスト汚染やファイルの競合・事故を防止。</li>
+        <li><strong>適材適所のモデル選定:</strong> 高度な推論が得意な <code>Claude 3.5 Sonnet</code> と、スピード感のある実装が得意な <code>GPT-4o</code> を役割ごとに使い分けます。</li>
+        <li><strong>直列・並列のハイブリッド処理:</strong> 仕様のブレを防ぐ上流工程は単一エージェント（直列）で、機能ごとの設計・製造は複数エージェント（並列）で一気に進行します。</li>
+        <li><strong>安全なファイル管理:</strong> 各エージェントのアクセス範囲を明確に限定し、コードや設計書の予期せぬ書き換えを防止します。</li>
       </ul>
+      <p>
+        このガイドでは、リードエージェントとサブエージェントの連携方法、直列・並列処理の使い分け、安全なファイル管理の実装例を紹介します。
+        なお、個人的な利用を前提としており、実際の企業様向けプロジェクトや大規模のチームでの運用には適さない場合があります。導入される場合は十分に検討の上、自己責任で行ってください。
+      </p>
+
     </div>
 
-    <!-- エージェント仕様一覧 -->
+    <!-- エージェント一覧 -->
     <div class="card">
-      <h2>2. エージェント定義一覧（<code>.github/agents/</code>）</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>定義ファイル</th>
-            <th>役割（ロール）</th>
-            <th>モデル</th>
-            <th>処理モード</th>
-            <th>概要</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>coordinator.agent.md</code></td>
-            <td>リード（PM）</td>
-            <td><span class="badge-sonnet">claude-3.5-sonnet</span></td>
-            <td>オーケストレーション</td>
-            <td>全体の進捗管理、タスク分解、サブエージェントの自動呼び出しと成果物統合。</td>
-          </tr>
-          <tr>
-            <td><code>requirements-lead.agent.md</code></td>
-            <td>要件定義</td>
-            <td><span class="badge-sonnet">claude-3.5-sonnet</span></td>
-            <td><span class="badge-serial">直列・1人</span></td>
-            <td>全体方針を踏まえた要件定義書の策定・更新。</td>
-          </tr>
-          <tr>
-            <td><code>external-designer.agent.md</code></td>
-            <td>外部設計</td>
-            <td><span class="badge-sonnet">claude-3.5-sonnet</span></td>
-            <td><span class="badge-serial">直列・1人</span></td>
-            <td>画面遷移図、DBスキーマ、共通UI仕様の策定。</td>
-          </tr>
-          <tr>
-            <td><code>internal-designer.agent.md</code></td>
-            <td>内部設計</td>
-            <td><span class="badge-sonnet">claude-3.5-sonnet</span></td>
-            <td><span class="badge-parallel">並列・複数</span></td>
-            <td>共通テンプレートに基づき、機能ごとの詳細設計を並列生成。</td>
-          </tr>
-          <tr>
-            <td><code>developer-worker.agent.md</code></td>
-            <td>製造・単体テスト</td>
-            <td><span class="badge-gpt4o">gpt-4o</span></td>
-            <td><span class="badge-parallel">並列・複数</span></td>
-            <td>内部設計書に基づき、ソースコードおよび単体テストコードを並列実装。</td>
-          </tr>
-          <tr>
-            <td><code>system-tester.agent.md</code></td>
-            <td>システムテスト</td>
-            <td><span class="badge-sonnet">claude-3.5-sonnet</span></td>
-            <td><span class="badge-serial">直列・1人</span></td>
-            <td>要件および外部設計を満たす結合・システムテスト仕様書の策定。</td>
-          </tr>
-          <tr>
-            <td><code>qna-assistant.agent.md</code></td>
-            <td>質問対応</td>
-            <td><span class="badge-sonnet">claude-3.5-sonnet</span></td>
-            <td>読み取り専用</td>
-            <td>仕様書全般を参照し、開発者の疑問や仕様問い合わせに回答。</td>
-          </tr>
-        </tbody>
-      </table>
+      <h2>🛠️ エージェント定義一覧（.github/agents/）</h2>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>定義ファイル</th>
+              <th>役割（ロール）</th>
+              <th>モデル</th>
+              <th>処理モード</th>
+              <th>役割の概要</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>coordinator.agent.md</code></td>
+              <td>リード（PM）</td>
+              <td><span class="badge badge-sonnet">Claude 3.5 Sonnet</span></td>
+              <td>オーケストレーション</td>
+              <td>全体の進行管理、タスクの分解、サブエージェントの呼び出しと統合。</td>
+            </tr>
+            <tr>
+              <td><code>requirements-lead.agent.md</code></td>
+              <td>要件定義</td>
+              <td><span class="badge badge-sonnet">Claude 3.5 Sonnet</span></td>
+              <td><span class="badge badge-serial">直列・1人</span></td>
+              <td>全体の方向性を整理し、要件定義書を作成・更新。</td>
+            </tr>
+            <tr>
+              <td><code>external-designer.agent.md</code></td>
+              <td>外部設計</td>
+              <td><span class="badge badge-sonnet">Claude 3.5 Sonnet</span></td>
+              <td><span class="badge badge-serial">直列・1人</span></td>
+              <td>画面遷移図、DBスキーマ、共通UI仕様を作成。</td>
+            </tr>
+            <tr>
+              <td><code>internal-designer.agent.md</code></td>
+              <td>内部設計</td>
+              <td><span class="badge badge-sonnet">Claude 3.5 Sonnet</span></td>
+              <td><span class="badge badge-parallel">並列・複数</span></td>
+              <td>共通テンプレートに沿って、機能別の詳細設計を並行して作成。</td>
+            </tr>
+            <tr>
+              <td><code>developer-worker.agent.md</code></td>
+              <td>製造・単体テスト</td>
+              <td><span class="badge badge-gpt4o">GPT-4o</span></td>
+              <td><span class="badge badge-parallel">並列・複数</span></td>
+              <td>内部設計書に基づき、ソースコードとテストコードを並行実装。</td>
+            </tr>
+            <tr>
+              <td><code>system-tester.agent.md</code></td>
+              <td>システムテスト</td>
+              <td><span class="badge badge-sonnet">Claude 3.5 Sonnet</span></td>
+              <td><span class="badge badge-serial">直列・1人</span></td>
+              <td>全体の要件と外部設計を満たすテスト仕様書を作成。</td>
+            </tr>
+            <tr>
+              <td><code>qna-assistant.agent.md</code></td>
+              <td>質問対応</td>
+              <td><span class="badge badge-sonnet">Claude 3.5 Sonnet</span></td>
+              <td><span class="badge badge-readonly">読み取り専用</span></td>
+              <td>仕様書全般を参照し、質問や不明点に回答（ファイル変更なし）。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- ドキュメントフォルダ構造 -->
     <div class="card">
-      <h2>3. ドキュメント構造（<code>docs/</code>）</h2>
-      <p>エージェント間が迷わずデータを受け渡せるよう、成果物のディレクトリ構造を厳格に定めています。</p>
+      <h2>📁 ドキュメントフォルダ構造（docs/）</h2>
+      <p>各エージェントがスムーズに成果物を受け渡せるよう整理されたフォルダ配置です。</p>
 <pre><code>docs/
 ├── 1_requirements/         # 要件定義書
 ├── 2_external_design/      # 外部設計（画面遷移、DB、UI）
@@ -257,19 +355,66 @@
     └── master_workflow.md # マスターワークフロー（リード用）</code></pre>
     </div>
 
-    <!-- 使い方と呼び出し例 -->
+    <!-- 使い方 -->
     <div class="card">
-      <h2>4. 使い方（VS Code Copilot Chat）</h2>
-      <h3>リードエージェントへの指示例</h3>
-      <p>VS Codeの Copilot Chat で <code>@coordinator</code> を呼び出し、まとめて並行タスクを指示します。</p>
+      <h2>🚀 VS Code での呼び出し例</h2>
+      <p>VS Codeの Copilot Chat で <code>@coordinator</code> を呼び出し、タスクを一気に依頼します。</p>
 <pre><code>@coordinator docs/shared/master_workflow.md に基づいて、
-新規機能「ユーザー認証フェーズ」の要件定義から内部設計までを順次進めてください。
-内部設計の作成段階では、機能ごとに並列サブエージェントを起動して処理してください。</code></pre>
+「ユーザー認証機能」の要件定義から内部設計までを進めてください。
+内部設計のフェーズでは、機能ごとに並列サブエージェントを起動して処理してください。</code></pre>
     </div>
+
+    <!-- 免責事項 -->
+<div class="disclaimer-box">
+  <h4>⚠️ ご利用に関するご注意（免責事項）</h4>
+  <ul>
+    <li>当ページで掲載している情報やサンプルファイル（.zip）は、個人の検証結果に基づく技術情報の共有を目的としています。</li>
+    <li>本情報の利用、およびサンプルファイルの動作によって生じた、いかなる損害・不利益（データ消失、設定変更による影響、AIの想定外の出力等）についても、作成者は一切の責任を負いかねます。</li>
+    <li>GitHub Copilotや各種AIモデルの仕様変更・アップデート等により、予告なく動作が変わる場合があります。</li>
+    <li>本ノウハウに関する個別の動作サポートやお問い合わせ対応は行っておりませんので、あらかじめご了承ください。ご自身の環境に合わせて調整・自己責任の範囲でご活用ください。</li>
+  </ul>
+</div>
+
+<style>
+  .disclaimer-box {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    margin-top: 2rem;
+    font-size: 0.82rem;
+    color: #6c757d;
+    line-height: 1.6;
+  }
+  .disclaimer-box h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.9rem;
+    color: #495057;
+  }
+  .disclaimer-box ul {
+    margin: 0;
+    padding-left: 1.2rem;
+  }
+  .disclaimer-box li {
+    margin-bottom: 0.25rem;
+  }
+</style>
+
+    <!-- ページ下部のダウンロード再掲 -->
+    <div class="download-card">
+      <div class="download-info">
+        <h3>📦 テンプレートをダウンロードして始める</h3>
+        <p>zipを解凍し、お使いのリポジトリに配置するだけで準備完了です。</p>
+      </div>
+      <a href="GithubCopilot_Multi_Agent_exp.zip" class="btn-download" download>
+        ご利用に関するご注意（免責事項）に同意し、サンプル (.zip) をダウンロード
+      </a>
+    </div>
+
   </div>
 
   <footer>
-    &copy; TVのなっくすの道具箱 | Custom GitHub Copilot Agent Framework
+    &copy; TVのなっくすの道具箱 | GitHub Copilot Multi-Agent Architecture Guide
   </footer>
 
 </body>

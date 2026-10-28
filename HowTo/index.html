@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub Copilot マルチエージェント開発アーキテクチャ - TVのなっくすの道具箱</title>
+  <style>
+    :root {
+      --bg-color: #0d1117;
+      --card-bg: #161b22;
+      --border-color: #30363d;
+      --text-color: #c9d1d9;
+      --heading-color: #58a6ff;
+      --accent-color: #238636;
+      --sub-text: #8b949e;
+      --code-bg: #1f242c;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: var(--card-bg);
+      border-bottom: 1px solid var(--border-color);
+      padding: 2rem 1rem;
+      text-align: center;
+    }
+
+    header h1 {
+      color: var(--heading-color);
+      margin: 0 0 0.5rem 0;
+      font-size: 1.8rem;
+    }
+
+    header p {
+      color: var(--sub-text);
+      margin: 0;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    h2 {
+      color: var(--heading-color);
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.5rem;
+      margin-top: 0;
+    }
+
+    h3 {
+      color: #79c0ff;
+      margin-top: 1.5rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+    }
+
+    th, td {
+      border: 1px solid var(--border-color);
+      padding: 0.75rem;
+      text-align: left;
+    }
+
+    th {
+      background-color: rgba(56, 139, 253, 0.1);
+      color: var(--heading-color);
+    }
+
+    .badge-sonnet {
+      background: #388bfd33;
+      color: #58a6ff;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+
+    .badge-gpt4o {
+      background: #23863633;
+      color: #7ee787;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+
+    .badge-serial {
+      background: #a371f733;
+      color: #d2a8ff;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+
+    .badge-parallel {
+      background: #d2992233;
+      color: #f2cc60;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+
+    pre {
+      background-color: var(--code-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 1rem;
+      overflow-x: auto;
+      font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 0.9rem;
+    }
+
+    .nav-back {
+      display: inline-block;
+      margin-bottom: 1rem;
+      color: var(--heading-color);
+      text-decoration: none;
+    }
+
+    .nav-back:hover {
+      text-decoration: underline;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem 0;
+      color: var(--sub-text);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border-color);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>GitHub Copilot マルチエージェント開発アーキテクチャ</h1>
+    <p>リード＆サブエージェント連携による次世代ソフトウェア開発フレームワーク</p>
+  </header>
+
+  <div class="container">
+    <a href="./index.html" class="nav-back">← TVのなっくすの道具箱 へ戻る</a>
+
+    <!-- コンセプト -->
+    <div class="card">
+      <h2>1. アーキテクチャ・コンセプト</h2>
+      <p>
+        本プロジェクトは、GitHub Copilotのカスタムエージェント機能（<code>.github/agents/</code>）を活用し、
+        <strong>「堅牢なウォーターフォール型ドキュメント管理」</strong>と<strong>「迅速なアジャイル並列実装」</strong>を融合させた開発フレームワークです。
+      </p>
+      <ul>
+        <li><strong>適材適所のモデル選定:</strong> 高度な推論やコンテキスト理解が必要な上流・設計工程には <code>Claude 3.5 Sonnet</code> を、スピードと実装精度が求められる製造工程には <code>GPT-4o</code> を割り当て最適化。</li>
+        <li><strong>直列・並列のハイブリッド制御:</strong> 整合性が重要な要件・外部設計は単一エージェントで直列に、独立した機能開発（内部設計・実装）は複数サブエージェントで同時並行処理。</li>
+        <li><strong>明確なコンテキスト分離:</strong> エージェントごとに読み書き権限と参照ドキュメントを分離し、コンテキスト汚染やファイルの競合・事故を防止。</li>
+      </ul>
+    </div>
+
+    <!-- エージェント仕様一覧 -->
+    <div class="card">
+      <h2>2. エージェント定義一覧（<code>.github/agents/</code>）</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>定義ファイル</th>
+            <th>役割（ロール）</th>
+            <th>モデル</th>
+            <th>処理モード</th>
+            <th>概要</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>coordinator.agent.md</code></td>
+            <td>リード（PM）</td>
+            <td><span class="badge-sonnet">claude-3.5-sonnet</span></td>
+            <td>オーケストレーション</td>
+            <td>全体の進捗管理、タスク分解、サブエージェントの自動呼び出しと成果物統合。</td>
+          </tr>
+          <tr>
+            <td><code>requirements-lead.agent.md</code></td>
+            <td>要件定義</td>
+            <td><span class="badge-sonnet">claude-3.5-sonnet</span></td>
+            <td><span class="badge-serial">直列・1人</span></td>
+            <td>全体方針を踏まえた要件定義書の策定・更新。</td>
+          </tr>
+          <tr>
+            <td><code>external-designer.agent.md</code></td>
+            <td>外部設計</td>
+            <td><span class="badge-sonnet">claude-3.5-sonnet</span></td>
+            <td><span class="badge-serial">直列・1人</span></td>
+            <td>画面遷移図、DBスキーマ、共通UI仕様の策定。</td>
+          </tr>
+          <tr>
+            <td><code>internal-designer.agent.md</code></td>
+            <td>内部設計</td>
+            <td><span class="badge-sonnet">claude-3.5-sonnet</span></td>
+            <td><span class="badge-parallel">並列・複数</span></td>
+            <td>共通テンプレートに基づき、機能ごとの詳細設計を並列生成。</td>
+          </tr>
+          <tr>
+            <td><code>developer-worker.agent.md</code></td>
+            <td>製造・単体テスト</td>
+            <td><span class="badge-gpt4o">gpt-4o</span></td>
+            <td><span class="badge-parallel">並列・複数</span></td>
+            <td>内部設計書に基づき、ソースコードおよび単体テストコードを並列実装。</td>
+          </tr>
+          <tr>
+            <td><code>system-tester.agent.md</code></td>
+            <td>システムテスト</td>
+            <td><span class="badge-sonnet">claude-3.5-sonnet</span></td>
+            <td><span class="badge-serial">直列・1人</span></td>
+            <td>要件および外部設計を満たす結合・システムテスト仕様書の策定。</td>
+          </tr>
+          <tr>
+            <td><code>qna-assistant.agent.md</code></td>
+            <td>質問対応</td>
+            <td><span class="badge-sonnet">claude-3.5-sonnet</span></td>
+            <td>読み取り専用</td>
+            <td>仕様書全般を参照し、開発者の疑問や仕様問い合わせに回答。</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ドキュメントフォルダ構造 -->
+    <div class="card">
+      <h2>3. ドキュメント構造（<code>docs/</code>）</h2>
+      <p>エージェント間が迷わずデータを受け渡せるよう、成果物のディレクトリ構造を厳格に定めています。</p>
+<pre><code>docs/
+├── 1_requirements/         # 要件定義書
+├── 2_external_design/      # 外部設計（画面遷移、DB、UI）
+│   ├── db_schema.md        # DB スキーマ
+│   ├── screen_flow.md      # 画面遷移図
+│   └── common_ui_spec.md   # 共通 UI 仕様
+├── 3_internal_design/      # 機能別内部設計書（並行生成）
+├── 5_system_test/          # システムテスト仕様書
+└── shared/                 # 共有リソース・共通テンプレート
+    ├── common_spec.md      # 共通仕様書
+    ├── design_template.md  # 内部設計テンプレート
+    └── master_workflow.md # マスターワークフロー（リード用）</code></pre>
+    </div>
+
+    <!-- 使い方と呼び出し例 -->
+    <div class="card">
+      <h2>4. 使い方（VS Code Copilot Chat）</h2>
+      <h3>リードエージェントへの指示例</h3>
+      <p>VS Codeの Copilot Chat で <code>@coordinator</code> を呼び出し、まとめて並行タスクを指示します。</p>
+<pre><code>@coordinator docs/shared/master_workflow.md に基づいて、
+新規機能「ユーザー認証フェーズ」の要件定義から内部設計までを順次進めてください。
+内部設計の作成段階では、機能ごとに並列サブエージェントを起動して処理してください。</code></pre>
+    </div>
+  </div>
+
+  <footer>
+    &copy; TVのなっくすの道具箱 | Custom GitHub Copilot Agent Framework
+  </footer>
+
+</body>
+</html>

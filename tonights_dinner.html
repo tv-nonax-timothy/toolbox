@@ -1635,7 +1635,11 @@
             subtitleEl.innerText = "今日の晩御飯はこのメニューに決定しました！";
 
             // Update recipe search links
-            const mainDishName = dish.name.split(/[＋＆]/)[0].trim();
+            const mainDishName = dish.name
+                .split(/[＋＆]/)[0]
+                .replace(/[（(][^）)]*[）)]/g, "")
+                .replace(/\s+/g, "")
+                .trim();
             document.getElementById("cookpad-link").href = `https://cookpad.com/search/${encodeURIComponent(mainDishName)}`;
             document.getElementById("youtube-link").href = `https://www.youtube.com/results?search_query=${encodeURIComponent(mainDishName + " レシピ")}`;
 

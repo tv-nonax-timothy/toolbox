@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ja" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nonax Architect Pack - 開発中アドオン</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1p:wght@400;500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'M PLUS Rounded 1p', 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        .hero-gradient {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.96) 0%, rgba(30, 41, 59, 0.88) 100%);
+        }
+        .play-shot {
+            cursor: zoom-in;
+        }
+        #play-image-modal.is-open {
+            display: flex;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-sky-500 selection:text-slate-950">
+    <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="index.html" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:text-sky-300 transition">
+                <i class="fa-solid fa-arrow-left mr-1"></i>アドオン一覧
+            </a>
+            <span class="text-sm font-black tracking-wider text-sky-300">TV NONAX</span>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 py-12 space-y-16">
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-slate-900/80 border border-sky-500/30 rounded-2xl p-8 shadow-2xl hero-gradient">
+            <div class="space-y-6">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/30 text-sky-300 text-xs font-bold">
+                    <i class="fa-solid fa-screwdriver-wrench"></i>
+                    <span>Development in Progress</span>
+                </div>
+                <h1 class="text-4xl md:text-5xl font-black tracking-tight text-white leading-tight">Nonax Architect Pack</h1>
+                <p class="text-slate-300 text-base leading-relaxed">
+                    村人に「棟梁（Architect）」職業を加え、設計図を使って建物を一緒に建てる建築アドオン。
+                    足場・囲い・職人の演出をそろえ、建築作業を便利で楽しい体験へ変えます。
+                </p>
+                <div class="inline-flex items-center gap-3 rounded-xl border border-sky-500/30 bg-sky-500/10 px-5 py-3 text-sky-200 text-sm font-bold">
+                    <i class="fa-solid fa-calendar-check text-lg"></i>
+                    <span>2026年12月中の完成を目標に開発中</span>
+                </div>
+            </div>
+            <div class="flex justify-center">
+                <div class="relative">
+                    <div class="absolute -inset-1 bg-gradient-to-r from-sky-500 to-cyan-300 rounded-2xl blur opacity-30"></div>
+                    <img src="Nonax_Architect_Pack.png" alt="Nonax Architect Pack アイコン" class="relative rounded-xl w-72 h-72 object-cover shadow-xl border border-slate-700">
+                </div>
+            </div>
+        </section>
+
+        <section class="space-y-6">
+            <div class="text-center space-y-2">
+                <h2 class="text-2xl md:text-3xl font-black text-white">棟梁との建築体験</h2>
+                <p class="text-slate-400 text-sm">設計図から完成まで、建築現場を再現する4ステップ</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <article class="bg-slate-900/70 border border-slate-800 rounded-xl p-5">
+                    <span class="text-sky-400 font-black">01</span>
+                    <h3 class="font-bold text-white mt-2 mb-2">設計図を設置</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">建築の起点と完成予想のガイドを表示します。</p>
+                </article>
+                <article class="bg-slate-900/70 border border-slate-800 rounded-xl p-5">
+                    <span class="text-sky-400 font-black">02</span>
+                    <h3 class="font-bold text-white mt-2 mb-2">現場を準備</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">足場、柵、囲い、看板や照明を自動で組みます。</p>
+                </article>
+                <article class="bg-slate-900/70 border border-slate-800 rounded-xl p-5">
+                    <span class="text-sky-400 font-black">03</span>
+                    <h3 class="font-bold text-white mt-2 mb-2">棟梁が着工</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">ブロックを1個ずつ配置し、効果音やパーティクルで進行します。</p>
+                </article>
+                <article class="bg-slate-900/70 border border-slate-800 rounded-xl p-5">
+                    <span class="text-sky-400 font-black">04</span>
+                    <h3 class="font-bold text-white mt-2 mb-2">現場を撤去</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">完成後に足場や囲いを片付け、建物だけを残します。</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="space-y-6">
+            <div class="text-center space-y-2">
+                <h2 class="text-2xl md:text-3xl font-black text-white">開発中のゲームプレイ画面</h2>
+                <p class="text-slate-400 text-sm">試験プレイで確認中の建築現場と棟梁の様子</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <figure class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3 space-y-3">
+                    <div class="overflow-hidden rounded-xl border border-slate-700/60 bg-slate-950">
+                        <img src="MinecraftSS1.png" alt="Nonax Architect Pack 試験プレイ画面1" onclick="openPlayImage(this)" class="play-shot w-full h-52 object-cover hover:scale-[1.02] transition duration-300">
+                    </div>
+                    <figcaption class="px-1 pb-1 text-sm font-bold text-slate-300">試験プレイ画面 01</figcaption>
+                </figure>
+                <figure class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3 space-y-3">
+                    <div class="overflow-hidden rounded-xl border border-slate-700/60 bg-slate-950">
+                        <img src="MinecraftSS2.png" alt="Nonax Architect Pack 試験プレイ画面2" onclick="openPlayImage(this)" class="play-shot w-full h-52 object-cover hover:scale-[1.02] transition duration-300">
+                    </div>
+                    <figcaption class="px-1 pb-1 text-sm font-bold text-slate-300">試験プレイ画面 02</figcaption>
+                </figure>
+                <figure class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3 space-y-3">
+                    <div class="overflow-hidden rounded-xl border border-slate-700/60 bg-slate-950">
+                        <img src="MinecraftSS3.png" alt="Nonax Architect Pack 試験プレイ画面3" onclick="openPlayImage(this)" class="play-shot w-full h-52 object-cover hover:scale-[1.02] transition duration-300">
+                    </div>
+                    <figcaption class="px-1 pb-1 text-sm font-bold text-slate-300">試験プレイ画面 03</figcaption>
+                </figure>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <article class="bg-slate-900/70 border border-slate-800 rounded-2xl p-7 space-y-4">
+                <h2 class="text-xl font-black text-white"><i class="fa-solid fa-ranking-star text-amber-400 mr-2"></i>ランク成長システム</h2>
+                <p class="text-slate-400 text-sm leading-relaxed">見習いから達人まで、棟梁のランクに応じて建築できる設計図と取引アイテムを段階的に解放します。</p>
+                <div class="flex flex-wrap gap-2 text-xs font-bold">
+                    <span class="rounded-lg bg-slate-800 px-3 py-1.5 text-slate-300">Lv.1 見習い棟梁</span>
+                    <span class="rounded-lg bg-slate-800 px-3 py-1.5 text-slate-300">Lv.2 一人前</span>
+                    <span class="rounded-lg bg-slate-800 px-3 py-1.5 text-slate-300">Lv.3 熟練</span>
+                    <span class="rounded-lg bg-slate-800 px-3 py-1.5 text-slate-300">Lv.4 名人</span>
+                    <span class="rounded-lg bg-slate-800 px-3 py-1.5 text-slate-300">Lv.5 達人</span>
+                </div>
+            </article>
+
+            <article class="bg-slate-900/70 border border-slate-800 rounded-2xl p-7 space-y-4">
+                <h2 class="text-xl font-black text-white"><i class="fa-solid fa-share-nodes text-sky-400 mr-2"></i>設計図の共有</h2>
+                <p class="text-slate-400 text-sm leading-relaxed">将来的にはマイクラ内から建物データを出力し、Webツールで設計図を共有・取得できる連携を検討しています。</p>
+                <div class="grid grid-cols-3 gap-2 text-center text-xs font-bold text-slate-300">
+                    <span class="rounded-lg bg-slate-800 px-2 py-3">マイクラで書き出し</span>
+                    <span class="rounded-lg bg-slate-800 px-2 py-3">Webで共有</span>
+                    <span class="rounded-lg bg-slate-800 px-2 py-3">棟梁が建築</span>
+                </div>
+            </article>
+        </section>
+
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center space-y-4">
+            <h2 class="text-2xl font-black text-white">開発ロードマップ</h2>
+            <p class="text-slate-400 text-sm max-w-2xl mx-auto">
+                Minecraft Bedrock Edition v26.62を基準に、設計図データ、ブロック設置、足場システム、棟梁の職業と取引を順に実装しています。
+            </p>
+            <div class="flex flex-wrap justify-center gap-3 text-sm font-bold">
+                <span class="rounded-xl bg-sky-500/10 border border-sky-500/30 px-4 py-2 text-sky-300">設計図データ</span>
+                <span class="rounded-xl bg-sky-500/10 border border-sky-500/30 px-4 py-2 text-sky-300">建築スクリプト</span>
+                <span class="rounded-xl bg-sky-500/10 border border-sky-500/30 px-4 py-2 text-sky-300">足場システム</span>
+                <span class="rounded-xl bg-sky-500/10 border border-sky-500/30 px-4 py-2 text-sky-300">職業・取引</span>
+            </div>
+        </section>
+    </main>
+
+    <footer class="border-t border-slate-800 py-8 text-center text-xs text-slate-500">
+        &copy; 2026 TV NONAX. Development preview.
+    </footer>
+
+    <div id="play-image-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-950/95 p-4 sm:p-8 backdrop-blur-sm" onclick="closePlayImage(event)" role="dialog" aria-modal="true" aria-label="スクリーンショット拡大表示">
+        <button type="button" onclick="closePlayImage()" class="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-slate-600 bg-slate-900 text-2xl text-white shadow-lg hover:border-sky-400 hover:text-sky-300 transition" aria-label="閉じる">
+            &times;
+        </button>
+        <img id="play-image-modal-content" src="" alt="" class="max-h-[calc(100vh-4rem)] max-w-[calc(100vw-2rem)] rounded-xl border border-slate-700 object-contain shadow-2xl" onclick="event.stopPropagation()">
+    </div>
+
+    <script>
+        function openPlayImage(image) {
+            const modal = document.getElementById("play-image-modal");
+            const modalImage = document.getElementById("play-image-modal-content");
+            modalImage.src = image.src;
+            modalImage.alt = image.alt;
+            modal.classList.add("is-open");
+            document.body.classList.add("overflow-hidden");
+        }
+
+        function closePlayImage(event) {
+            if (event && event.target !== event.currentTarget && event.target.id !== "play-image-modal-content") return;
+            const modal = document.getElementById("play-image-modal");
+            modal.classList.remove("is-open");
+            document.body.classList.remove("overflow-hidden");
+            document.getElementById("play-image-modal-content").src = "";
+        }
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") closePlayImage();
+        });
+    </script>
+</body>
+</html>
